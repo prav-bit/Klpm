@@ -1,13 +1,13 @@
 <!DOCTYPE html>
 <html lang="ta">
-  <head>
-    <meta charset="UTF-8"/>
-    <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
-    <meta name="theme-color" content="#0B6E6E"/>
-    <meta name="apple-mobile-web-app-capable" content="yes"/>
-    <title>Kuzhanthai Pettagam - SNCU DGL</title>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Tamil:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
-    <style>
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<meta name="theme-color" content="#0B6E6E"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<title>Kuzhanthai Pettagam - SNCU DGL</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Tamil:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%;width:100%;overflow:hidden}
 body{background:#F7F9F9;font-family:'Inter',sans-serif;color:#1A2B2B;height:100vh;display:flex;flex-direction:column}
@@ -88,43 +88,43 @@ body{background:#F7F9F9;font-family:'Inter',sans-serif;color:#1A2B2B;height:100v
 .call-btn{display:inline-flex;align-items:center;gap:5px;background:#1A7A4A;color:#fff;border:none;border-radius:20px;padding:4px 12px;font-size:11px;font-weight:700;cursor:pointer;margin-top:5px}
 .del-entry-btn{background:#FDECEA;border:1.5px solid #C0392B;color:#C0392B;border-radius:6px;padding:3px 9px;font-size:10px;font-weight:700;cursor:pointer}
 </style>
-  </head>
-  <body>
-    <div id="app">
-      <div class="hdr">
-        <div style="display:flex;justify-content:space-between;align-items:flex-start">
-          <div>
-            <div class="hdr-title">குழந்தை பெட்டகம்</div>
-            <div class="hdr-sub">SNCU &middot; DGL Medical College Hospital</div>
-            <span class="hdr-badge">Medication Kit Tracker</span>
-          </div>
-          <button onclick="openAdmin()" style="background:rgba(255,255,255,0.15);border:none;border-radius:7px;padding:7px 9px;cursor:pointer;font-size:16px;color:#fff">&#9881;</button>
-        </div>
+</head>
+<body>
+<div id="app">
+  <div class="hdr">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start">
+      <div>
+        <div class="hdr-title">குழந்தை பெட்டகம்</div>
+        <div class="hdr-sub">SNCU &middot; DGL Medical College Hospital</div>
+        <span class="hdr-badge">Medication Kit Tracker</span>
       </div>
-      <div class="ibar">
-        <div class="dot" id="statusDot"></div>
-        <span id="ibarTxt">Connecting to Cloud...</span>
-      </div>
-      <div class="tabs">
-        <button class="tab on" onclick="goTab(0)">பதிவு</button>
-        <button class="tab" onclick="goTab(1)">தேடல்</button>
-        <button class="tab" onclick="goTab(2)">பட்டியல்</button>
-        <button class="tab" onclick="goTab(3)">தவறியோர் <span class="tbadge hide" id="dbadge">0</span></button>
-        <button class="tab" onclick="goTab(4)">அறிக்கை</button>
-      </div>
-      <div class="pg">
-        <div id="toast"></div>
-        <div id="p0"></div>
-        <div id="p1" class="hide"></div>
-        <div id="p2" class="hide"></div>
-        <div id="p3" class="hide"></div>
-        <div id="p4" class="hide"></div>
-      </div>
+      <button onclick="openAdmin()" style="background:rgba(255,255,255,0.15);border:none;border-radius:7px;padding:7px 9px;cursor:pointer;font-size:16px;color:#fff">&#9881;</button>
     </div>
-    <div id="modal" class="hide"></div>
+  </div>
+  <div class="ibar">
+    <div class="dot" id="statusDot"></div>
+    <span id="ibarTxt">Connecting to Cloud...</span>
+  </div>
+  <div class="tabs">
+    <button class="tab on" onclick="goTab(0)">பதிவு</button>
+    <button class="tab" onclick="goTab(1)">தேடல்</button>
+    <button class="tab" onclick="goTab(2)">பட்டியல்</button>
+    <button class="tab" onclick="goTab(3)">தவறியோர் <span class="tbadge hide" id="dbadge">0</span></button>
+    <button class="tab" onclick="goTab(4)">அறிக்கை</button>
+  </div>
+  <div class="pg">
+    <div id="toast"></div>
+    <div id="p0"></div>
+    <div id="p1" class="hide"></div>
+    <div id="p2" class="hide"></div>
+    <div id="p3" class="hide"></div>
+    <div id="p4" class="hide"></div>
+  </div>
+</div>
+<div id="modal" class="hide"></div>
 
-  <!-- FIREBASE INTEGRATION MODULE -->
-  <script type="module">
+<!-- FIREBASE REALTIME DATABASE MODULE -->
+<script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
   import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
@@ -143,7 +143,7 @@ body{background:#F7F9F9;font-family:'Inter',sans-serif;color:#1A2B2B;height:100v
   const db = getDatabase(app);
   const dbRef = ref(db, 'kp_records');
 
-  // Cloud Save
+  // Global Function to save to Firebase
   window.cloudSave = function() {
     set(dbRef, window.DB || [])
       .then(() => console.log("Synced to Firebase Cloud!"))
@@ -154,18 +154,17 @@ body{background:#F7F9F9;font-family:'Inter',sans-serif;color:#1A2B2B;height:100v
       });
   };
 
-  // Realtime Listener
+  // Live Listener from Firebase Cloud
   onValue(dbRef, (snapshot) => {
     const data = snapshot.val();
     const dot = document.getElementById("statusDot");
-    
+
     if (data && Array.isArray(data)) {
       window.DB = data;
       localStorage.setItem(window.DBKEY, JSON.stringify(window.DB));
       if (typeof window.render === 'function') window.render(window.curTab);
       if (dot) dot.style.background = "#2ecc71";
     } else if (data === null) {
-      // If cloud is empty, sync local DB to cloud if local DB has records
       if (window.DB && window.DB.length > 0) {
         window.cloudSave();
       }
@@ -225,6 +224,10 @@ function goTab(i){
   var tabs=document.querySelectorAll(".tab");
   for(var j=0;j<tabs.length;j++)tabs[j].classList.toggle("on",j===i);
   for(var j=0;j<5;j++)document.getElementById("p"+j).classList.toggle("hide",j!==i);
+  if(curTab===1 && i!==1){
+    document.getElementById("p1").innerHTML="";
+    _searchQ="";
+  }
   curTab=i; render(i);
 }
 function render(i){
@@ -279,17 +282,34 @@ function doReg(){
 }
 
 // ── SEARCH ────────────────────────────────────────────────────────────────────
-function renderSearch(q){
-  q=q||"";
-  document.getElementById("p1").innerHTML=
-    '<div class="sw"><span class="sico">&#128269;</span>'+
-    '<input class="sinp" placeholder="Search DEIC / Phone / Name..." value="'+escH(q)+'" oninput="renderSearch(this.value)"/></div>'+
-    '<div id="sres"></div>';
-  if(q.length>1){
-    var ql=q.toLowerCase();
-    var res=DB.filter(function(n){return n.deic.toLowerCase().indexOf(ql)>-1||n.phone.indexOf(q)>-1||n.name.toLowerCase().indexOf(ql)>-1;});
-    document.getElementById("sres").innerHTML=res.length?res.map(pcHTML).join(""):'<div class="empty"><div class="eico">&#128270;</div>No baby found</div>';
+var _searchQ="";
+function renderSearch(){
+  if(!document.getElementById("searchInp")){
+    document.getElementById("p1").innerHTML=
+      '<div class="sw"><span class="sico">&#128269;</span>'+
+      '<input class="sinp" id="searchInp" placeholder="Search DEIC / Phone / Name..." '+
+      'oninput="_searchQ=this.value;doSearch(this.value)" autocomplete="off" autocorrect="off" autocapitalize="off"/></div>'+
+      '<div id="sres"></div>';
+    setTimeout(function(){
+      var el=document.getElementById("searchInp");
+      if(el){el.focus();el.value=_searchQ;if(_searchQ)doSearch(_searchQ);}
+    },50);
   }
+}
+function doSearch(q){
+  q=q||"";
+  var res=document.getElementById("sres");
+  if(!res)return;
+  if(q.length<1){res.innerHTML="";return;}
+  var ql=q.toLowerCase();
+  var found=DB.filter(function(n){
+    return n.deic.toLowerCase().indexOf(ql)>-1||
+           n.phone.indexOf(q)>-1||
+           n.name.toLowerCase().indexOf(ql)>-1;
+  });
+  res.innerHTML=found.length
+    ?found.map(pcHTML).join("")
+    :'<div class="empty"><div class="eico">&#128270;</div>No baby found</div>';
 }
 
 // ── LIST ──────────────────────────────────────────────────────────────────────
@@ -338,15 +358,21 @@ function renderListItems(){
 }
 
 // ── DEFAULTERS ────────────────────────────────────────────────────────────────
-function renderDef(q){
-  q=q||"";
-  var defs=getDefaulters();
-  var res=q.length>1?defs.filter(function(n){return n.deic.indexOf(q)>-1||n.phone.indexOf(q)>-1;}):defs;
+function renderDef(){
   var html='<div class="sw"><span class="sico">&#128269;</span>'+
-    '<input class="sinp" placeholder="Search DEIC / Phone..." value="'+escH(q)+'" oninput="renderDef(this.value)"/></div>';
-  if(!defs.length){html+='<div class="empty"><div class="eico">&#9989;</div>No defaulters</div>';}
-  else{
-    html+=res.map(function(n){
+    '<input class="sinp" id="defInp" placeholder="Search DEIC / Phone..." oninput="doDef(this.value)" autocomplete="off"/></div>';
+  var defs=getDefaulters();
+  html+='<div id="defItems"></div>';
+  document.getElementById("p3").innerHTML=html;
+  doDef("");
+}
+function doDef(q){
+  var defs=getDefaulters();
+  var res=q&&q.length>0?defs.filter(function(n){return n.deic.toLowerCase().indexOf(q.toLowerCase())>-1||n.phone.indexOf(q)>-1;}):defs;
+  var el=document.getElementById("defItems");
+  if(!el)return;
+  if(!defs.length){el.innerHTML='<div class="empty"><div class="eico">&#9989;</div>No defaulters</div>';return;}
+  el.innerHTML=res.length?res.map(function(n){
       var nfu=nextFU(n.visits);var cls=defClass(nfu);
       return '<div class="card">'+
         '<div class="prow"><div>'+
@@ -361,9 +387,7 @@ function renderDef(q){
         '<button class="btn btn-sm btn-gray" onclick="doStatus(\''+n.id+'\',\'dead\')">Dead</button>'+
         '<button class="btn btn-sm btn-purple" onclick="doStatus(\''+n.id+'\',\'migrated\')">Migrated</button>'+
         '</div></div>';
-    }).join("");
-  }
-  document.getElementById("p3").innerHTML=html;
+    }).join(""):'<div class="empty"><div class="eico">&#128270;</div>No results</div>';
 }
 function doStatus(id,status){
   var n=DB.find(function(x){return x.id===id;});
@@ -496,7 +520,8 @@ function renderReports(){
   var rangeV=allV.filter(function(x){return x.v.date>=rFrom&&x.v.date<=rTo;});
   var byM={};allV.forEach(function(x){var k=x.v.date.slice(0,7);byM[k]=(byM[k]||0)+1;});
   var months=Object.keys(byM).sort();
-  var maxC=months.length?Math.max.apply(null,months.map(function(m){return byM[m];})):1;
+  var maxC=months.length?Math.max.apply(null,months.map(function(m){return byM[m]||0;})):1;
+  if(maxC===0)maxC=1;
   function sc(num,lbl,color,fn){return '<div class="sc" onclick="showRptList(\''+fn+'\')"><div class="snum" style="color:'+color+'">'+num+'</div><div class="slbl">'+lbl+'</div><div class="slink">View List</div></div>';}
   var html='<div class="sg">'+
     sc(DB.length,"Total Registered","#0B6E6E","all")+
