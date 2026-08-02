@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="ta">
+  <head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+    <meta name="theme-color" content="#0B6E6E"/>
+    <meta name="apple-mobile-web-app-capable" content="yes"/>
+    <title>Kuzhanthai Pettagam - SNCU DGL</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Tamil:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+    <style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;width:100%;overflow:hidden}
+body{background:#F7F9F9;font-family:'Inter',sans-serif;color:#1A2B2B;height:100vh;display:flex;flex-direction:column}
+#app{width:100%;height:100vh;display:flex;flex-direction:column;overflow:hidden}
+.hdr{background:linear-gradient(135deg,#084F4F,#0B6E6E);padding:12px 14px 10px;position:relative;z-index:50;box-shadow:0 2px 8px rgba(0,0,0,0.2)}
+.hdr-title{font-family:'Noto Sans Tamil',sans-serif;font-size:20px;font-weight:700;color:#fff}
+.hdr-sub{font-size:10px;color:rgba(255,255,255,0.7);letter-spacing:1px;text-transform:uppercase;margin-top:1px}
+.hdr-badge{display:inline-block;background:#E8820C;color:#fff;font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;margin-top:3px}
+.ibar{background:#063a3a;padding:3px 14px;font-size:11px;color:rgba(255,255,255,0.65);display:flex;align-items:center;gap:5px;flex-shrink:0}
+.dot{width:6px;height:6px;border-radius:50%;background:#2ecc71;flex-shrink:0}
+.tabs{display:flex;background:#063a3a;overflow-x:auto;flex-shrink:0}
+.tabs::-webkit-scrollbar{display:none}
+.tab{flex:1;min-width:55px;padding:9px 3px;font-family:'Noto Sans Tamil',sans-serif;font-size:11px;font-weight:600;color:rgba(255,255,255,0.55);background:none;border:none;border-bottom:3px solid transparent;cursor:pointer;white-space:nowrap}
+.tab.on{color:#fff;border-bottom-color:#E8820C}
+.tbadge{background:#E8820C;color:#fff;font-size:9px;font-weight:700;padding:1px 4px;border-radius:8px;margin-left:2px}
+.pg{flex:1;padding:14px;overflow-y:auto;height:0}
+.hide{display:none!important}
+.card{background:#fff;border-radius:10px;border:1px solid #D0E4E4;padding:14px;margin-bottom:10px;box-shadow:0 1px 3px rgba(0,0,0,0.05)}
+.ctitle{font-size:12px;font-weight:700;color:#0B6E6E;margin-bottom:10px;font-family:'Noto Sans Tamil',sans-serif}
+.fld{margin-bottom:10px}
+.lbl{display:block;font-size:10px;font-weight:600;color:#5A7070;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:3px}
+.inp{width:100%;padding:9px 11px;border:1.5px solid #D0E4E4;border-radius:7px;font-size:13px;font-family:'Inter',sans-serif;color:#1A2B2B;background:#fff;outline:none}
+.inp:focus{border-color:#0B6E6E}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.btn{display:flex;align-items:center;justify-content:center;gap:5px;padding:11px 16px;border-radius:7px;font-size:13px;font-weight:600;border:none;cursor:pointer;width:100%;font-family:'Noto Sans Tamil',sans-serif}
+.btn-teal{background:#0B6E6E;color:#fff}
+.btn-orange{background:#E8820C;color:#fff}
+.btn-red{background:#C0392B;color:#fff}
+.btn-out{background:#fff;color:#0B6E6E;border:1.5px solid #0B6E6E}
+.btn-sm{padding:6px 10px;font-size:11px;width:auto;border-radius:6px}
+.btn-gray{background:#555;color:#fff}
+.btn-purple{background:#7B5EA7;color:#fff}
+.btn-green{background:#1A7A4A;color:#fff}
+.pc{background:#fff;border-radius:10px;border:1px solid #D0E4E4;padding:12px;margin-bottom:8px;cursor:pointer}
+.pc:hover{border-color:#0B6E6E}
+.pname{font-size:14px;font-weight:700;font-family:'Noto Sans Tamil',sans-serif}
+.pmeta{font-size:11px;color:#5A7070;margin-top:2px}
+.prow{display:flex;justify-content:space-between;align-items:flex-start}
+.bdg{display:inline-flex;align-items:center;padding:2px 7px;border-radius:20px;font-size:10px;font-weight:600;white-space:nowrap}
+.bg-teal{background:#E0F4F4;color:#0B6E6E}
+.bg-green{background:#E9F7EF;color:#1A7A4A}
+.bg-orange{background:#FEF3E2;color:#E8820C}
+.bg-red{background:#FDECEA;color:#C0392B}
+.bg-gray{background:#F0F0F0;color:#666}
+.pw{background:#D0E4E4;border-radius:20px;height:7px;overflow:hidden;margin:6px 0}
+.pb{height:100%;border-radius:20px;background:linear-gradient(90deg,#0B6E6E,#E8820C)}
+.vr{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid #eee}
+.vnum{width:26px;height:26px;border-radius:50%;background:#1A7A4A;color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.vnum-p{background:#D0E4E4;color:#5A7070}
+.sw{position:relative;margin-bottom:12px}
+.sico{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:#5A7070}
+.sinp{width:100%;padding:10px 10px 10px 32px;border:1.5px solid #D0E4E4;border-radius:8px;font-size:13px;outline:none}
+.sinp:focus{border-color:#0B6E6E}
+.sg{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.sc{background:#fff;border-radius:9px;border:1px solid #D0E4E4;padding:11px;text-align:center;cursor:pointer}
+.sc:hover{border-color:#0B6E6E}
+.snum{font-size:24px;font-weight:700;color:#0B6E6E;line-height:1}
+.slbl{font-size:10px;color:#5A7070;margin-top:2px}
+.slink{font-size:9px;color:#0B6E6E;font-weight:600;margin-top:3px}
+.toast{border-radius:7px;padding:9px 12px;font-size:12px;margin-bottom:10px;line-height:1.4}
+.t-ok{background:#E9F7EF;border:1px solid #1A7A4A;color:#1A7A4A}
+.t-err{background:#FDECEA;border:1px solid #C0392B;color:#C0392B}
+.empty{text-align:center;padding:36px 16px;color:#5A7070}
+.eico{font-size:36px;margin-bottom:8px}
+.dvd{border:none;border-top:1px solid #eee;margin:10px 0}
+.ir{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #eee;font-size:12px}
+.ik{color:#5A7070;flex-shrink:0}
+.iv{font-weight:600;text-align:right;flex:1;margin-left:8px}
+.ovl{position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:200;display:flex;align-items:flex-end;justify-content:center}
+.mdl{background:#fff;border-radius:18px 18px 0 0;width:100%;max-width:600px;max-height:92vh;overflow-y:auto;padding:18px}
+.mhdl{width:36px;height:4px;background:#D0E4E4;border-radius:2px;margin:0 auto 14px}
+.cbanner{background:linear-gradient(135deg,#1A7A4A,#27ae60);color:#fff;border-radius:10px;padding:14px;text-align:center;margin-bottom:10px}
+.ibox{margin-top:4px;background:#E0F4F4;border-radius:6px;padding:5px 9px;font-size:11px;color:#0B6E6E;font-weight:600}
+.tbl{width:100%;border-collapse:collapse;font-size:11px}
+.tbl th{background:#0B6E6E;color:#fff;padding:7px 6px;text-align:left}
+.tbl td{padding:6px;border-bottom:1px solid #eee}
+.tbl tr:nth-child(even) td{background:#F7F9F9}
+.call-btn{display:inline-flex;align-items:center;gap:5px;background:#1A7A4A;color:#fff;border:none;border-radius:20px;padding:4px 12px;font-size:11px;font-weight:700;cursor:pointer;margin-top:5px}
+.del-entry-btn{background:#FDECEA;border:1.5px solid #C0392B;color:#C0392B;border-radius:6px;padding:3px 9px;font-size:10px;font-weight:700;cursor:pointer}
+</style>
+  </head>
+  <body>
+    <div id="app">
+      <div class="hdr">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start">
+          <div>
+            <div class="hdr-title">குழந்தை பெட்டகம்</div>
+            <div class="hdr-sub">SNCU &middot; DGL Medical College Hospital</div>
+            <span class="hdr-badge">Medication Kit Tracker</span>
+          </div>
+          <button onclick="openAdmin()" style="background:rgba(255,255,255,0.15);border:none;border-radius:7px;padding:7px 9px;cursor:pointer;font-size:16px;color:#fff">&#9881;</button>
+        </div>
+      </div>
+      <div class="ibar">
+        <div class="dot" id="statusDot">
+        </div>
+        <span id="ibarTxt">Connecting...</span>
+      </div>
+      <div class="tabs">
+        <button class="tab on" onclick="goTab(0)">பதிவு</button>
+        <button class="tab" onclick="goTab(1)">தேடல்</button>
+        <button class="tab" onclick="goTab(2)">பட்டியல்</button>
+        <button class="tab" onclick="goTab(3)">தவறியோர் <span class="tbadge hide" id="dbadge">0</span>
+      </button>
+      <button class="tab" onclick="goTab(4)">அறிக்கை</button>
+    </div>
+    <div class="pg">
+      <div id="toast">
+      </div>
+      <div id="p0">
+      </div>
+      <div id="p1" class="hide">
+      </div>
+      <div id="p2" class="hide">
+      </div>
+      <div id="p3" class="hide">
+      </div>
+      <div id="p4" class="hide">
+      </div>
+    </div>
+  </div>
+  <div id="modal" class="hide">
+  </div>
+  <!-- FIREBASE INTEGRATION MODULE -->
+  <script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+  // === YOUR UPDATED FIREBASE CONFIGURATION ===
+  const firebaseConfig = {
+    apiKey: "AIzaSyDH2BqMNWWzrnI9QMZgBWj7gPk1gWYgAFU",
+    authDomain: "klpm-a790f.firebaseapp.com",
+    databaseURL: "https://klpm-a790f-default-rtdb.firebaseio.com",
+    projectId: "klpm-a790f",
+    storageBucket: "klpm-a790f.firebasestorage.app",
+    messagingSenderId: "589472519187",
+    appId: "1:589472519187:web:db488eaf2d3df699ea1be6",
+    measurementId: "G-TZF7QYDFZM"
+  };
+
+  // Initialize Firebase & Realtime Database
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+  const dbRef = ref(db, 'kp_records');
+
+  // Firebase Cloud Save Function
+  window.cloudSave = function() {
+    set(dbRef, window.DB)
+      .then(() => console.log("Synced to Firebase Cloud!"))
+      .catch((err) => console.error("Firebase sync error: ", err));
+  };
+
+  // Listen for Realtime updates from Firebase
+  onValue(dbRef, (snapshot) => {
+    const data = snapshot.val();
+    if (data && Array.isArray(data)) {
+      window.DB = data;
+      localStorage.setItem(window.DBKEY, JSON.stringify(window.DB));
+      if (typeof window.render === 'function') window.render(window.curTab);
+      const dot = document.getElementById("statusDot");
+      if (dot) dot.style.background = "#2ecc71";
+    } else {
+      const dot = document.getElementById("statusDot");
+      if (dot) dot.style.background = "#e74c3c";
+    }
+  });
+</script>
+  <script>
+// ── DB ────────────────────────────────────────────────────────────────────────
+var DB=[], DBKEY="kp_v3";
+function dbLoad(){try{var d=localStorage.getItem(DBKEY);DB=d?JSON.parse(d):[];}catch(e){DB=[];}}
+function dbSave(){
+  try{
+    localStorage.setItem(DBKEY,JSON.stringify(DB));
+    if(typeof window.cloudSave === 'function'){ window.cloudSave(); }
+  }catch(e){}
+}
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+function today(){return new Date().toISOString().split("T")[0];}
+function nowt(){return new Date().toLocaleTimeString("en-IN",{hour:"2-digit",minute:"2-digit"});}
+function fmtDate(d){if(!d)return "-";return new Date(d).toLocaleDateString("en-IN",{day:"2-digit",month:"short",year:"numeric"});}
+function addDays(ds,n){var d=new Date(ds);d.setDate(d.getDate()+n);return d.toISOString().split("T")[0];}
+function diffDays(a,b){return Math.floor((new Date(b)-new Date(a))/86400000);}
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2);}
+function nextFU(v){if(!v||!v.length)return null;return addDays(v[v.length-1].date,30);}
+function escH(s){if(!s)return "";return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
+function doCall(ph){window.location.href="tel:"+ph;}
+function defClass(exp){
+  var d=diffDays(exp,today());
+  if(d<30)return null;if(d<60)return "1M Default";if(d<90)return "2M Default";return "3M+ Default";
+}
+function getDefaulters(){
+  return DB.filter(function(n){
+    if(n.status==="dead"||n.status==="migrated"||n.completed)return false;
+    if(!n.visits||!n.visits.length)return false;
+    var nfu=nextFU(n.visits);return nfu&&diffDays(nfu,today())>=30;
+  });
+}
+
+// ── Toast ─────────────────────────────────────────────────────────────────────
+var _tt;
+function showToast(msg,type){
+  clearTimeout(_tt);
+  document.getElementById("toast").innerHTML='<div class="toast t-'+(type||"ok")+'">'+msg+'</div>';
+  _tt=setTimeout(function(){document.getElementById("toast").innerHTML="";},4000);
+}
+
+// ── Tabs ──────────────────────────────────────────────────────────────────────
+var curTab=0;
+function goTab(i){
+  var tabs=document.querySelectorAll(".tab");
+  for(var j=0;j<tabs.length;j++)tabs[j].classList.toggle("on",j===i);
+  for(var j=0;j<5;j++)document.getElementById("p"+j).classList.toggle("hide",j!==i);
+  curTab=i; render(i);
+}
+function render(i){
+  if(i===0)renderReg();
+  if(i===1)renderSearch();
+  if(i===2)renderList();
+  if(i===3)renderDef();
+  if(i===4)renderReports();
+  updBadge(); updIbar();
+}
+function updBadge(){var d=getDefaulters();var b=document.getElementById("dbadge");b.textContent=d.length;b.classList.toggle("hide",d.length===0);}
+function updIbar(){document.getElementById("ibarTxt").textContent=DB.length+" records synced in cloud";}
+
+// ── REGISTER ──────────────────────────────────────────────────────────────────
+function renderReg(){
+  document.getElementById("p0").innerHTML=
+    '<div class="card" style="min-height:calc(100vh - 160px)">'+
+    '<div class="ctitle">New Baby Registration</div>'+
+    '<div class="fld"><label class="lbl">DEIC Number *</label><input class="inp" id="r_deic" placeholder="DEIC-XXXX"/></div>'+
+    '<div class="fld"><label class="lbl">Baby Name *</label><input class="inp" id="r_name" placeholder="Baby of / Name"/></div>'+
+    '<div class="g2">'+
+      '<div class="fld"><label class="lbl">Birth Weight (g)</label><input class="inp" type="number" id="r_bwt" placeholder="1200"/></div>'+
+      '<div class="fld"><label class="lbl">Date of Birth</label><input class="inp" type="date" id="r_dob"/></div>'+
+    '</div>'+
+    '<div class="fld"><label class="lbl">Diagnosis</label><input class="inp" id="r_dx" placeholder="Preterm, LBW, HIE..."/></div>'+
+    '<div class="fld"><label class="lbl">Discharge Date *</label>'+
+      '<input class="inp" type="date" id="r_dod" onchange="prevKit()"/>'+
+      '<div class="ibox hide" id="kitPrev"></div>'+
+    '</div>'+
+    '<div class="fld"><label class="lbl">Phone Number *</label><input class="inp" type="tel" id="r_ph" placeholder="9XXXXXXXXX" maxlength="10"/></div>'+
+    '<button class="btn btn-teal" onclick="doReg()">Register Baby</button>'+
+    '</div>';
+}
+function prevKit(){
+  var dod=document.getElementById("r_dod").value;
+  var box=document.getElementById("kitPrev");
+  if(dod){box.classList.remove("hide");box.innerHTML="Kit #1 auto on: "+fmtDate(dod)+" | Next: "+fmtDate(addDays(dod,30));}
+  else box.classList.add("hide");
+}
+function doReg(){
+  var deic=document.getElementById("r_deic").value.trim();
+  var name=document.getElementById("r_name").value.trim();
+  var dod=document.getElementById("r_dod").value;
+  var ph=document.getElementById("r_ph").value.trim();
+  if(!deic||!name||!ph){alert("DEIC, Name and Phone are required!");return;}
+  if(!dod){alert("Discharge date is required!");return;}
+  DB.unshift({id:uid(),deic:deic,name:name,bwt:document.getElementById("r_bwt").value||"",
+    diagnosis:document.getElementById("r_dx").value||"",dob:document.getElementById("r_dob").value||"",
+    dod:dod,kitDate:dod,phone:ph,visits:[{date:dod,time:"Discharge",kitNum:1,auto:true}],
+    status:"active",completed:false,regDate:today()});
+  dbSave(); showToast("Baby registered successfully!"); renderReg(); updBadge(); updIbar();
+}
+
+// ── SEARCH ────────────────────────────────────────────────────────────────────
+function renderSearch(q){
+  q=q||"";
+  document.getElementById("p1").innerHTML=
+    '<div class="sw"><span class="sico">&#128269;</span>'+
+    '<input class="sinp" placeholder="Search DEIC / Phone / Name..." value="'+escH(q)+'" oninput="renderSearch(this.value)"/></div>'+
+    '<div id="sres"></div>';
+  if(q.length>1){
+    var ql=q.toLowerCase();
+    var res=DB.filter(function(n){return n.deic.toLowerCase().indexOf(ql)>-1||n.phone.indexOf(q)>-1||n.name.toLowerCase().indexOf(ql)>-1;});
+    document.getElementById("sres").innerHTML=res.length?res.map(pcHTML).join(""):'<div class="empty"><div class="eico">&#128270;</div>No baby found</div>';
+  }
+}
+
+// ── LIST ──────────────────────────────────────────────────────────────────────
+var lf="all";
+function setLf(val){lf=val;renderListItems();}
+function renderList(){
+  var td=today();
+  var aC=DB.filter(function(n){return n.status==="active"&&!n.completed;}).length;
+  var dC=DB.filter(function(n){
+    if(!n.visits||!n.visits.length||n.completed||n.status!=="active")return false;
+    var nfu=nextFU(n.visits);return nfu&&diffDays(td,nfu)>=0&&diffDays(td,nfu)<=3;
+  }).length;
+  var oC=DB.filter(function(n){
+    if(!n.visits||!n.visits.length||n.completed||n.status!=="active")return false;
+    var nfu=nextFU(n.visits);return nfu&&diffDays(nfu,td)>0;
+  }).length;
+  var cC=DB.filter(function(n){return n.completed;}).length;
+  document.getElementById("p2").innerHTML=
+    '<select class="inp" id="listFilter" style="margin-bottom:10px" onchange="setLf(this.value)">'+
+    '<option value="all">All ('+DB.length+')</option>'+
+    '<option value="active">Active ('+aC+')</option>'+
+    '<option value="due">Due in 3 days ('+dC+')</option>'+
+    '<option value="overdue">Overdue ('+oC+')</option>'+
+    '<option value="completed">Completed ('+cC+')</option>'+
+    '</select><div id="listItems"></div>';
+  document.getElementById("listFilter").value=lf;
+  renderListItems();
+}
+function renderListItems(){
+  var td=today();
+  var list=DB.filter(function(n){
+    if(lf==="active")return n.status==="active"&&!n.completed;
+    if(lf==="completed")return n.completed;
+    if(lf==="due"){
+      if(!n.visits||!n.visits.length||n.completed||n.status!=="active")return false;
+      var nfu=nextFU(n.visits);return nfu&&diffDays(td,nfu)>=0&&diffDays(td,nfu)<=3;
+    }
+    if(lf==="overdue"){
+      if(!n.visits||!n.visits.length||n.completed||n.status!=="active")return false;
+      var nfu=nextFU(n.visits);return nfu&&diffDays(nfu,td)>0;
+    }
+    return true;
+  });
+  var el=document.getElementById("listItems");
+  if(el)el.innerHTML=list.length?list.map(pcHTML).join(""):'<div class="empty"><div class="eico">&#128203;</div>No records</div>';
+}
+
+// ── DEFAULTERS ────────────────────────────────────────────────────────────────
+function renderDef(q){
+  q=q||"";
+  var defs=getDefaulters();
+  var res=q.length>1?defs.filter(function(n){return n.deic.indexOf(q)>-1||n.phone.indexOf(q)>-1;}):defs;
+  var html='<div class="sw"><span class="sico">&#128269;</span>'+
+    '<input class="sinp" placeholder="Search DEIC / Phone..." value="'+escH(q)+'" oninput="renderDef(this.value)"/></div>';
+  if(!defs.length){html+='<div class="empty"><div class="eico">&#9989;</div>No defaulters</div>';}
+  else{
+    html+=res.map(function(n){
+      var nfu=nextFU(n.visits);var cls=defClass(nfu);
+      return '<div class="card">'+
+        '<div class="prow"><div>'+
+        '<div class="pname">'+escH(n.name)+'</div>'+
+        '<div class="pmeta">DEIC: '+escH(n.deic)+' &bull; '+n.phone+'</div>'+
+        '<div class="pmeta">Expected: '+fmtDate(nfu)+'</div>'+
+        '<button class="call-btn" onclick="doCall(\''+n.phone+'\')">&#128222; Call '+n.phone+'</button>'+
+        '</div><span class="bdg bg-red">'+cls+'</span></div>'+
+        '<hr class="dvd"/>'+
+        '<div style="display:flex;gap:6px">'+
+        '<button class="btn btn-out btn-sm" onclick="openPt(\''+n.id+'\')">Details</button>'+
+        '<button class="btn btn-sm btn-gray" onclick="doStatus(\''+n.id+'\',\'dead\')">Dead</button>'+
+        '<button class="btn btn-sm btn-purple" onclick="doStatus(\''+n.id+'\',\'migrated\')">Migrated</button>'+
+        '</div></div>';
+    }).join("");
+  }
+  document.getElementById("p3").innerHTML=html;
+}
+function doStatus(id,status){
+  var n=DB.find(function(x){return x.id===id;});
+  if(!n)return;
+  if(window.confirm(n.name+" - Mark as "+(status==="dead"?"Dead":"Migrated")+"?")){
+    n.status=status;n.statusDate=today();dbSave();render(curTab);updBadge();
+    showToast(n.name+" marked as "+(status==="dead"?"Dead":"Migrated"));
+  }
+}
+
+// ── PATIENT CARD HTML ─────────────────────────────────────────────────────────
+function pcHTML(n){
+  var kc=n.visits?n.visits.length:0;
+  var nfu=kc>0?nextFU(n.visits):null;
+  var td=today();var dl=nfu?diffDays(td,nfu):null;
+  var bdg="";
+  if(n.status==="dead")bdg='<span class="bdg bg-gray">Dead</span>';
+  else if(n.status==="migrated")bdg='<span class="bdg bg-gray">Migrated</span>';
+  else if(n.completed)bdg='<span class="bdg bg-green">Done</span>';
+  else if(nfu&&diffDays(nfu,td)>0)bdg='<span class="bdg bg-red">Overdue</span>';
+  else if(nfu&&dl>=0&&dl<=3)bdg='<span class="bdg bg-orange">'+(dl===0?"Today":dl+"d")+'</span>';
+  else bdg='<span class="bdg bg-teal">Kit '+kc+'/12</span>';
+  return '<div class="pc" onclick="openPt(\''+n.id+'\')">'+
+    '<div class="prow"><div>'+
+    '<div class="pname">'+escH(n.name)+'</div>'+
+    '<div class="pmeta">DEIC: '+escH(n.deic)+' &bull; '+n.phone+'</div>'+
+    (n.diagnosis?'<div class="pmeta">'+escH(n.diagnosis)+'</div>':'')+
+    '<button class="call-btn" onclick="event.stopPropagation();doCall(\''+n.phone+'\')">&#128222; Call</button>'+
+    '</div>'+bdg+'</div>'+
+    '<div class="pw"><div class="pb" style="width:'+(kc/12*100)+'%"></div></div>'+
+    '<div style="font-size:10px;color:#5A7070;display:flex;justify-content:space-between">'+
+    '<span>'+kc+'/12 kits</span>'+(nfu&&n.status==="active"&&!n.completed?'<span>Next: '+fmtDate(nfu)+'</span>':'')+
+    '</div></div>';
+}
+
+// ── PATIENT MODAL ─────────────────────────────────────────────────────────────
+function openPt(id){var n=DB.find(function(x){return x.id===id;});if(n)renderPt(n,false);}
+function closePt(){document.getElementById("modal").innerHTML="";document.getElementById("modal").classList.add("hide");render(curTab);}
+function renderPt(n,editing){
+  var kc=n.visits?n.visits.length:0;
+  var nfu=kc>0?nextFU(n.visits):null;
+  var statusLbl=n.status==="dead"?"Dead":n.status==="migrated"?"Migrated":n.completed?"Completed":"Active";
+  var html='<div class="ovl" onclick="closePt()"><div class="mdl" onclick="event.stopPropagation()">';
+  html+='<div class="mhdl"></div>';
+  if(n.completed&&!editing)html+='<div class="cbanner"><div style="font-size:22px">&#127881;</div><div style="font-size:17px;font-weight:700">12 Kits Completed!</div></div>';
+  html+='<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">'+
+    '<div><div style="font-size:16px;font-weight:700;font-family:Noto Sans Tamil,sans-serif">'+escH(n.name)+'</div>'+
+    '<div style="font-size:11px;color:#5A7070">DEIC: '+escH(n.deic)+'</div></div>'+
+    '<div style="display:flex;gap:6px">'+
+    (!editing?'<button onclick="openEdit(\''+n.id+'\')" style="background:#FEF3E2;border:1.5px solid #E8820C;color:#E8820C;border-radius:6px;padding:5px 10px;font-size:11px;font-weight:700;cursor:pointer">Edit</button>':'')+
+    '<button onclick="closePt()" style="background:none;border:none;font-size:20px;cursor:pointer;color:#5A7070">&times;</button>'+
+    '</div></div>';
+
+  if(editing){
+    html+='<div class="card" style="border:2px solid #E8820C">'+
+      '<div class="ctitle" style="color:#E8820C">Edit Details</div>'+
+      '<div class="fld"><label class="lbl">DEIC *</label><input class="inp" id="e_deic" value="'+escH(n.deic)+'"/></div>'+
+      '<div class="fld"><label class="lbl">Name *</label><input class="inp" id="e_name" value="'+escH(n.name)+'"/></div>'+
+      '<div class="g2">'+
+        '<div class="fld"><label class="lbl">Weight(g)</label><input class="inp" type="number" id="e_bwt" value="'+escH(n.bwt||"")+'"/></div>'+
+        '<div class="fld"><label class="lbl">DOB</label><input class="inp" type="date" id="e_dob" value="'+(n.dob||"")+'"/></div>'+
+      '</div>'+
+      '<div class="fld"><label class="lbl">Diagnosis</label><input class="inp" id="e_dx" value="'+escH(n.diagnosis||"")+'"/></div>'+
+      '<div class="fld"><label class="lbl">Discharge Date</label>'+
+        '<input class="inp" type="date" id="e_dod" value="'+(n.dod||"")+'"/>'+
+        '<div class="ibox">Kit #1 date = Discharge date</div></div>'+
+      '<div class="fld"><label class="lbl">Phone *</label><input class="inp" type="tel" id="e_ph" value="'+escH(n.phone)+'" maxlength="10"/></div>'+
+      '<div style="display:flex;gap:6px">'+
+        '<button class="btn btn-orange" style="flex:1" onclick="saveEdit(\''+n.id+'\')">Save</button>'+
+        '<button class="btn btn-out" style="flex:1" onclick="openPt(\''+n.id+'\')">Cancel</button>'+
+      '</div></div>';
+  } else {
+    html+='<div class="card" style="margin-bottom:10px">';
+    var infoRows=[["DOB",fmtDate(n.dob)],["Birth Wt",n.bwt?n.bwt+"g":"-"],["Diagnosis",n.diagnosis||"-"],["Discharge",fmtDate(n.dod)],["Next Visit",nfu?fmtDate(nfu):"-"],["Status",statusLbl]];
+    infoRows.forEach(function(r){html+='<div class="ir"><span class="ik">'+r[0]+'</span><span class="iv">'+escH(r[1])+'</span></div>';});
+    // Phone row with big call button
+    html+='<div class="ir"><span class="ik">Phone</span><span class="iv">'+escH(n.phone)+'</span></div>';
+    html+='</div>';
+    // Big call button
+    html+='<button class="btn btn-green" style="margin-bottom:10px;font-size:16px" onclick="doCall(\''+n.phone+'\')">&#128222;&nbsp; Call '+escH(n.phone)+'</button>';
+    // Kit history
+    html+='<div class="card" style="margin-bottom:10px"><div class="ctitle">Kit History ('+kc+'/12)</div>';
+    html+='<div class="pw" style="margin-bottom:10px"><div class="pb" style="width:'+(kc/12*100)+'%"></div></div>';
+    if(n.visits)n.visits.forEach(function(v,i){
+      html+='<div class="vr"><div class="vnum">'+(i+1)+'</div><div><div style="font-size:12px;font-weight:600">Kit #'+(i+1)+(i===0?" (Discharge)":"")+'</div><div style="font-size:10px;color:#5A7070">'+fmtDate(v.date)+(v.auto?" &bull; Discharge":" &bull; "+v.time)+'</div></div><span style="margin-left:auto;color:#1A7A4A;font-weight:700">&#10003;</span></div>';
+    });
+    for(var i=kc;i<12;i++){html+='<div class="vr"><div class="vnum vnum-p">'+(i+1)+'</div><div style="font-size:12px;color:#5A7070">Pending</div></div>';}
+    html+='</div>';
+    if(n.status==="active"&&!n.completed)html+='<button class="btn btn-orange" style="margin-bottom:8px" onclick="giveKit(\''+n.id+'\')">Give Kit #'+(kc+1)+'</button>';
+    if(n.status==="active")html+='<div style="display:flex;gap:6px;margin-bottom:8px"><button class="btn btn-sm btn-gray" style="flex:1" onclick="doStatus(\''+n.id+'\',\'dead\')">Mark Dead</button><button class="btn btn-sm btn-purple" style="flex:1" onclick="doStatus(\''+n.id+'\',\'migrated\')">Mark Migrated</button></div>';
+    html+='<button class="btn btn-out" onclick="closePt()">Close</button>';
+  }
+  html+='</div></div>';
+  var m=document.getElementById("modal");m.innerHTML=html;m.classList.remove("hide");
+}
+function openEdit(id){var n=DB.find(function(x){return x.id===id;});if(n)renderPt(n,true);}
+function saveEdit(id){
+  var n=DB.find(function(x){return x.id===id;});if(!n)return;
+  var deic=document.getElementById("e_deic").value.trim();
+  var name=document.getElementById("e_name").value.trim();
+  var ph=document.getElementById("e_ph").value.trim();
+  if(!deic||!name||!ph){alert("DEIC, Name and Phone required!");return;}
+  var newDod=document.getElementById("e_dod").value;
+  if(newDod&&newDod!==n.dod&&n.visits&&n.visits.length>0){n.visits[0].date=newDod;n.kitDate=newDod;}
+  n.deic=deic;n.name=name;n.bwt=document.getElementById("e_bwt").value||"";
+  n.diagnosis=document.getElementById("e_dx").value||"";
+  n.dob=document.getElementById("e_dob").value||"";
+  n.dod=newDod||n.dod;n.phone=ph;
+  dbSave();showToast("Details updated!");openPt(id);
+}
+function giveKit(id){
+  var n=DB.find(function(x){return x.id===id;});if(!n)return;
+  var num=(n.visits?n.visits.length:0)+1;
+  if(!n.visits)n.visits=[];
+  n.visits.push({date:today(),time:nowt(),kitNum:num});
+  n.completed=n.visits.length>=12;
+  dbSave();showToast("Kit #"+num+" recorded!");updBadge();updIbar();openPt(id);
+}
+
+// ── REPORTS ───────────────────────────────────────────────────────────────────
+var rFrom=(function(){var d=new Date();d.setMonth(d.getMonth()-1);return d.toISOString().split("T")[0];})();
+var rTo=today();
+function renderReports(){
+  var td=today();
+  var comp=DB.filter(function(n){return n.completed;});
+  var dm=DB.filter(function(n){return n.status==="dead"||n.status==="migrated";});
+  var elig=DB.filter(function(n){return n.status==="active"&&!n.completed;});
+  var kN=elig.reduce(function(s,n){return s+Math.max(0,12-(n.visits?n.visits.length:0));},0);
+  var allV=DB.reduce(function(a,n){return a.concat((n.visits||[]).map(function(v){return {v:v,n:n};}));},[]);
+  var todayV=allV.filter(function(x){return x.v.date===td;});
+  var todayNew=todayV.filter(function(x){return x.v.kitNum===1;});
+  var todayFU=todayV.filter(function(x){return x.v.kitNum>1;});
+  var rangeV=allV.filter(function(x){return x.v.date>=rFrom&&x.v.date<=rTo;});
+  var byM={};allV.forEach(function(x){var k=x.v.date.slice(0,7);byM[k]=(byM[k]||0)+1;});
+  var months=Object.keys(byM).sort();
+  var maxC=months.length?Math.max.apply(null,months.map(function(m){return byM[m];})):1;
+  function sc(num,lbl,color,fn){return '<div class="sc" onclick="showRptList(\''+fn+'\')"><div class="snum" style="color:'+color+'">'+num+'</div><div class="slbl">'+lbl+'</div><div class="slink">View List</div></div>';}
+  var html='<div class="sg">'+
+    sc(DB.length,"Total Registered","#0B6E6E","all")+
+    sc(comp.length,"Completed 12 Kits","#1A7A4A","comp")+
+    sc(dm.length,"Dead / Migrated","#7B5EA7","dm")+
+    sc(kN,"Kits Needed (Eligible)","#C0392B","needed")+
+    '</div>';
+  html+='<div class="card"><div class="ctitle">Kits Given Today ('+fmtDate(td)+')</div>'+
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">'+
+    '<div class="sc" onclick="showRptList(\'tnew\')"><div class="snum" style="color:#0B6E6E">'+todayNew.length+'</div><div class="slbl">New Kit (#1)</div><div class="slink">View List</div></div>'+
+    '<div class="sc" onclick="showRptList(\'tfu\')"><div class="snum" style="color:#E8820C">'+todayFU.length+'</div><div class="slbl">Follow-up Kits</div><div class="slink">View List</div></div>'+
+    '</div>'+
+    '<div style="background:#E0F4F4;border-radius:7px;padding:8px;text-align:center;cursor:pointer" onclick="showRptList(\'tall\')">'+
+    '<span style="font-size:16px;font-weight:700;color:#0B6E6E">'+todayV.length+' Total Today &rsaquo;</span></div></div>';
+  html+='<div class="card"><div class="ctitle">By Date Range</div>'+
+    '<div class="g2" style="margin-bottom:8px">'+
+    '<div class="fld"><label class="lbl">From</label><input class="inp" type="date" value="'+rFrom+'" onchange="rFrom=this.value;renderReports()"/></div>'+
+    '<div class="fld"><label class="lbl">To</label><input class="inp" type="date" value="'+rTo+'" onchange="rTo=this.value;renderReports()"/></div>'+
+    '</div><div style="background:#E0F4F4;border-radius:7px;padding:8px;text-align:center;cursor:pointer" onclick="showRptList(\'range\')">'+
+    '<div style="font-size:22px;font-weight:700;color:#0B6E6E">'+rangeV.length+'</div>'+
+    '<div style="font-size:11px;color:#5A7070">Kits in this period &bull; View List</div></div></div>';
+  html+='<div class="card"><div class="ctitle">Monthly Summary</div>';
+  if(!months.length){html+='<div style="color:#5A7070;font-size:12px">No data</div>';}
+  else{months.forEach(function(m){var c=byM[m];var ml=new Date(m+"-01").toLocaleDateString("en-IN",{month:"short",year:"numeric"});
+    html+='<div style="margin-bottom:7px"><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:2px"><span style="font-weight:600">'+ml+'</span><span style="color:#0B6E6E;font-weight:700">'+c+' kits</span></div>'+
+    '<div class="pw"><div class="pb" style="width:'+(c/maxC*100)+'%"></div></div></div>';});}
+  html+='</div>';
+  document.getElementById("p4").innerHTML=html;
+}
+
+// ── REPORT LIST MODAL ─────────────────────────────────────────────────────────
+function showRptList(type){
+  var td=today();var title="";var rows=[];var isDM=false;
+  var allV=DB.reduce(function(a,n){return a.concat((n.visits||[]).map(function(v){return {v:v,n:n};}));},[]);
+  if(type==="all"){title="All Registered Babies ("+DB.length+")";rows=DB.map(function(n){var kc=n.visits?n.visits.length:0;var last=kc?fmtDate(n.visits[kc-1].date):"-";var st=n.status==="dead"?"Dead":n.status==="migrated"?"Migrated":n.completed?"Completed":"Active";return[n.deic,n.name,kc+"/12",last,st];});}
+  else if(type==="comp"){title="Completed 12 Kits";rows=DB.filter(function(n){return n.completed;}).map(function(n){return[n.deic,n.name,"12/12",fmtDate(n.visits[11].date),"Completed"];});}
+  else if(type==="dm"){title="Dead / Migrated";isDM=true;rows=DB.filter(function(n){return n.status==="dead"||n.status==="migrated";}).map(function(n){var kc=n.visits?n.visits.length:0;return[n.deic,n.name,kc+"/12",fmtDate(n.statusDate||""),n.status==="dead"?"Dead":"Migrated"];});}
+  else if(type==="needed"){title="Kits Needed (Eligible)";rows=DB.filter(function(n){return n.status==="active"&&!n.completed;}).map(function(n){var kc=n.visits?n.visits.length:0;return[n.deic,n.name,kc+"/12",kc?fmtDate(n.visits[kc-1].date):"-",(12-kc)+" remaining"];});}
+  else if(type==="tall"){title="All Kits Today";rows=allV.filter(function(x){return x.v.date===td;}).map(function(x){return[x.n.deic,x.n.name,x.v.kitNum+"/12",fmtDate(x.v.date),x.v.kitNum===1?"New Kit":"Follow-up"];});}
+  else if(type==="tnew"){title="New Kits Today (#1)";rows=allV.filter(function(x){return x.v.date===td&&x.v.kitNum===1;}).map(function(x){return[x.n.deic,x.n.name,"1/12",fmtDate(x.v.date),"New Kit"];});}
+  else if(type==="tfu"){title="Follow-up Kits Today";rows=allV.filter(function(x){return x.v.date===td&&x.v.kitNum>1;}).map(function(x){return[x.n.deic,x.n.name,x.v.kitNum+"/12",fmtDate(x.v.date),"Follow-up"];});}
+  else if(type==="range"){title="Kits: "+fmtDate(rFrom)+" to "+fmtDate(rTo);rows=allV.filter(function(x){return x.v.date>=rFrom&&x.v.date<=rTo;}).map(function(x){return[x.n.deic,x.n.name,x.v.kitNum+"/12",fmtDate(x.v.date),x.v.kitNum===1?"New Kit":"Follow-up"];});}
+  var cols=isDM?["DEIC","Baby Name","Kits","Status Date","Status"]:["DEIC","Baby Name","Kits","Last Kit","Status"];
+  var tbl='<div style="overflow-x:auto"><table class="tbl" id="rptTable"><thead><tr>'+cols.map(function(h){return'<th>'+h+'</th>';}).join('')+'</tr></thead><tbody>'+
+    (rows.length?rows.map(function(r,i){return'<tr>'+r.map(function(c){return'<td>'+escH(String(c||"-"))+'</td>';}).join('')+'</tr>';}).join(''):'<tr><td colspan="5" style="text-align:center;padding:16px;color:#5A7070">No data</td></tr>')+
+    '</tbody></table></div>';
+  var html='<div class="ovl" onclick="closeModal()"><div class="mdl" onclick="event.stopPropagation()">';
+  html+='<div class="mhdl"></div>';
+  html+='<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px"><div><div style="font-size:14px;font-weight:700;color:#0B6E6E">'+escH(title)+'</div><div style="font-size:11px;color:#5A7070">'+rows.length+' records</div></div><button onclick="closeModal()" style="background:none;border:none;font-size:20px;cursor:pointer;color:#5A7070">&times;</button></div>';
+  html+='<div style="display:flex;gap:6px;margin-bottom:10px"><button class="btn btn-teal btn-sm" style="flex:1" onclick="doPDF()">PDF / Print</button><button class="btn btn-orange btn-sm" style="flex:1" onclick="doCSV(\''+escH(title)+'\')">Excel / CSV</button></div>';
+  html+=tbl;
+  html+='<div style="margin-top:10px"><button class="btn btn-out" onclick="closeModal()">Close</button></div>';
+  html+='</div></div>';
+  var m=document.getElementById("modal");m.innerHTML=html;m.classList.remove("hide");
+}
+function closeModal(){document.getElementById("modal").innerHTML="";document.getElementById("modal").classList.add("hide");}
+
+// ── PDF ───────────────────────────────────────────────────────────────────────
+function doPDF(){
+  var tbl=document.getElementById("rptTable");if(!tbl){alert("No data");return;}
+  var win=window.open("","_blank","width=900,height=600");
+  win.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"/><title>Report</title>'+
+    '<style>body{font-family:Arial,sans-serif;margin:20px}h2{color:#0B6E6E;font-size:16px;margin-bottom:4px}.sub{font-size:11px;color:#666;margin-bottom:14px}table{width:100%;border-collapse:collapse;font-size:11px}th{background:#0B6E6E;color:#fff;padding:7px 6px;text-align:left}td{padding:6px;border-bottom:1px solid #ddd}tr:nth-child(even) td{background:#f8f8f8}.footer{margin-top:14px;font-size:10px;color:#888;text-align:right}@media print{button{display:none}}</style>'+
+    '</head><body><h2>Kuzhanthai Pettagam - SNCU DGL</h2><div class="sub">Printed: '+fmtDate(today())+'</div>'+
+    tbl.outerHTML+'<div class="footer">DGL Medical College Hospital &bull; SNCU</div>'+
+    '<script>window.onload=function(){window.print();};<\/script></body></html>');
+  win.document.close();
+}
+
+// ── CSV ───────────────────────────────────────────────────────────────────────
+function doCSV(title){
+  var tbl=document.getElementById("rptTable");if(!tbl){alert("No data");return;}
+  var rows=Array.from(tbl.querySelectorAll("tr"));
+  var csv=rows.map(function(r){return Array.from(r.querySelectorAll("th,td")).map(function(c){return'"'+c.innerText.replace(/"/g,'""')+'"';}).join(",");}).join("\r\n");
+  var blob=new Blob(["\uFEFF"+csv],{type:"text/csv;charset=utf-8"});
+  var a=document.createElement("a");a.href=URL.createObjectURL(blob);
+  a.download="KP_"+title.replace(/[^a-zA-Z0-9]/g,"_")+"_"+today()+".csv";
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+}
+
+// ── ADMIN ─────────────────────────────────────────────────────────────────────
+var _adminFound=[];
+function openAdmin(){
+  var html='<div class="ovl" onclick="closeModal()"><div class="mdl" onclick="event.stopPropagation()" style="max-height:90vh;overflow-y:auto">';
+  html+='<div class="mhdl"></div>';
+  html+='<div style="display:flex;justify-content:space-between;margin-bottom:14px"><div style="font-size:15px;font-weight:700">Admin Settings</div><button onclick="closeModal()" style="background:none;border:none;font-size:20px;cursor:pointer;color:#5A7070">&times;</button></div>';
+  html+='<div style="background:#E0F4F4;border-radius:9px;padding:12px;text-align:center;margin-bottom:12px"><div style="font-size:24px;font-weight:700;color:#0B6E6E">'+DB.length+'</div><div style="font-size:11px;color:#5A7070">Babies registered</div></div>';
+  html+='<div style="background:#FEF9E7;border:1.5px solid #D4A017;border-radius:9px;padding:12px;margin-bottom:12px">'+
+    '<div style="font-size:13px;font-weight:700;color:#D4A017;margin-bottom:8px">Delete Specific Entry</div>'+
+    '<input class="inp" id="adminSrch" placeholder="Search DEIC / Phone / Name / Reg Date" oninput="adminSearch(this.value)" style="margin-bottom:8px"/>'+
+    '<div id="adminSearchRes"></div></div>';
+  html+='<div style="background:#FDECEA;border:1.5px solid #C0392B;border-radius:9px;padding:12px;margin-bottom:12px">'+
+    '<div style="font-size:13px;font-weight:700;color:#C0392B;margin-bottom:6px">Delete All Data</div>'+
+    '<div style="font-size:12px;color:#5A7070;margin-bottom:10px">Permanently deletes all records. Cannot be undone.</div>'+
+    '<button class="btn btn-red" onclick="adminStep2()">Delete All Data</button></div>';
+  html+='<button class="btn btn-out" onclick="closeModal()">Close</button>';
+  html+='</div></div>';
+  var m=document.getElementById("modal");m.innerHTML=html;m.classList.remove("hide");
+}
+function adminSearch(q){
+  var res=document.getElementById("adminSearchRes");
+  if(!q||q.length<2){res.innerHTML="";_adminFound=[];return;}
+  var ql=q.toLowerCase();
+  _adminFound=DB.filter(function(n){return n.deic.toLowerCase().indexOf(ql)>-1||n.phone.indexOf(q)>-1||n.name.toLowerCase().indexOf(ql)>-1||(n.regDate&&n.regDate.indexOf(q)>-1);});
+  if(!_adminFound.length){res.innerHTML='<div style="font-size:12px;color:#5A7070;padding:6px 0">No records found</div>';return;}
+  res.innerHTML=_adminFound.map(function(n,i){
+    var kc=n.visits?n.visits.length:0;
+    return '<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid #eee">'+
+      '<div><div style="font-size:12px;font-weight:700">'+escH(n.name)+'</div>'+
+      '<div style="font-size:10px;color:#5A7070">DEIC: '+escH(n.deic)+' | Kits: '+kc+'/12 | Reg: '+fmtDate(n.regDate)+'</div></div>'+
+      '<button class="del-entry-btn" onclick="adminDelEntry('+i+')">Delete</button></div>';
+  }).join("");
+}
+function adminDelEntry(idx){
+  var n=_adminFound[idx];if(!n)return;
+  if(!window.confirm("Delete entry for "+n.name+"?\nThis cannot be undone."))return;
+  var pwd=window.prompt("Enter admin password:");
+  if(pwd!=="123456"){alert("Wrong password!");return;}
+  DB=DB.filter(function(x){return x.id!==n.id;});
+  dbSave();updBadge();updIbar();showToast("Entry for "+n.name+" deleted.");
+  var q=document.getElementById("adminSrch");if(q)adminSearch(q.value);
+}
+function adminStep2(){
+  var html='<div class="ovl" onclick="closeModal()"><div class="mdl" onclick="event.stopPropagation()"><div class="mhdl"></div>'+
+    '<div style="text-align:center;padding:10px 0 18px"><div style="font-size:44px">&#9888;</div>'+
+    '<div style="font-size:15px;font-weight:700;color:#C0392B;margin:8px 0">Confirm Delete All</div>'+
+    '<div style="font-size:12px;color:#5A7070">All '+DB.length+' records will be deleted permanently.</div></div>'+
+    '<div style="display:flex;gap:8px"><button class="btn btn-out" style="flex:1" onclick="openAdmin()">Cancel</button>'+
+    '<button class="btn btn-red" style="flex:1" onclick="adminStep3()">Yes, Continue</button></div></div></div>';
+  var m=document.getElementById("modal");m.innerHTML=html;m.classList.remove("hide");
+}
+function adminStep3(){
+  var html='<div class="ovl" onclick="closeModal()"><div class="mdl" onclick="event.stopPropagation()"><div class="mhdl"></div>'+
+    '<div style="text-align:center;margin-bottom:16px"><div style="font-size:32px">&#128272;</div>'+
+    '<div style="font-size:14px;font-weight:700;margin:8px 0">Enter Admin Password</div>'+
+    '<div style="font-size:11px;color:#5A7070">Enter password to confirm deletion</div></div>'+
+    '<div class="fld"><input class="inp" type="password" id="apwd" placeholder="Password" maxlength="10" style="text-align:center;font-size:18px;letter-spacing:5px"/>'+
+    '<div id="aperr" style="color:#C0392B;font-size:11px;text-align:center;margin-top:4px"></div></div>'+
+    '<div style="display:flex;gap:8px"><button class="btn btn-out" style="flex:1" onclick="openAdmin()">Cancel</button>'+
+    '<button class="btn btn-red" style="flex:1" onclick="doClean()">Delete All</button></div></div></div>';
+  var m=document.getElementById("modal");m.innerHTML=html;m.classList.remove("hide");
+}
+function doClean(){
+  var p=document.getElementById("apwd").value;
+  if(p!=="123456"){document.getElementById("aperr").textContent="Wrong password!";return;}
+  DB=[];dbSave();closeModal();render(curTab);showToast("All data deleted.");
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+dbLoad();renderReg();updBadge();updIbar();
+</script>
+</body>
+</html>
