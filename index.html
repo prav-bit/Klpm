@@ -31,6 +31,7 @@ body{background:#F7F9F9;font-family:'Inter',sans-serif;color:#1A2B2B;height:100v
 .lbl{display:block;font-size:10px;font-weight:600;color:#5A7070;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:3px}
 .inp{width:100%;padding:9px 11px;border:1.5px solid #D0E4E4;border-radius:7px;font-size:13px;font-family:'Inter',sans-serif;color:#1A2B2B;background:#fff;outline:none}
 .inp:focus{border-color:#0B6E6E}
+.inp-err{border-color:#C0392B!important;background:#FDF2F2!important}
 .g2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .btn{display:flex;align-items:center;justify-content:center;gap:5px;padding:11px 16px;border-radius:7px;font-size:13px;font-weight:600;border:none;cursor:pointer;width:100%;font-family:'Noto Sans Tamil',sans-serif}
 .btn-teal{background:#0B6E6E;color:#fff}
@@ -81,6 +82,7 @@ body{background:#F7F9F9;font-family:'Inter',sans-serif;color:#1A2B2B;height:100v
 .mhdl{width:36px;height:4px;background:#D0E4E4;border-radius:2px;margin:0 auto 14px}
 .cbanner{background:linear-gradient(135deg,#1A7A4A,#27ae60);color:#fff;border-radius:10px;padding:14px;text-align:center;margin-bottom:10px}
 .ibox{margin-top:4px;background:#E0F4F4;border-radius:6px;padding:5px 9px;font-size:11px;color:#0B6E6E;font-weight:600}
+.ibox-err{background:#FDECEA!important;color:#C0392B!important;border:1px solid #C0392B!important}
 .tbl{width:100%;border-collapse:collapse;font-size:11px}
 .tbl th{background:#0B6E6E;color:#fff;padding:7px 6px;text-align:left}
 .tbl td{padding:6px;border-bottom:1px solid #eee}
@@ -246,7 +248,10 @@ function renderReg(){
   document.getElementById("p0").innerHTML=
     '<div class="card" style="min-height:calc(100vh - 160px)">'+
     '<div class="ctitle">New Baby Registration</div>'+
-    '<div class="fld"><label class="lbl">DEIC Number *</label><input class="inp" id="r_deic" placeholder="DEIC-XXXX"/></div>'+
+    '<div class="fld"><label class="lbl">DEIC Number *</label>'+
+      '<input class="inp" id="r_deic" placeholder="DEIC-XXXX" oninput="checkDeicDup()"/>'+
+      '<div class="ibox ibox-err hide" id="deicWarn">⚠️ Deic number already in use</div>'+
+    '</div>'+
     '<div class="fld"><label class="lbl">Baby Name *</label><input class="inp" id="r_name" placeholder="Baby of / Name"/></div>'+
     '<div class="g2">'+
       '<div class="fld"><label class="lbl">Birth Weight (g)</label><input class="inp" type="number" id="r_bwt" placeholder="1200"/></div>'+
@@ -261,28 +266,53 @@ function renderReg(){
     '<button class="btn btn-teal" onclick="doReg()">Register Baby</button>'+
     '</div>';
 }
+
+// Smart Real-time DEIC Duplicate Check
+function checkDeicDup(){
+  var inp = document.getElementById("r_deic");
+  var warn = document.getElementById("deicWarn");
+  if(!inp || !warn) return false;
+  var val = inp.value.trim();
+  if(!val){
+    inp.classList.remove("inp-err");
+    warn.classList.add("hide");
+    return false;
+  }
+  var isDup = DB.some(function(item){
+    return item.deic.toLowerCase() === val.toLowerCase();
+  });
+  if(isDup){
+    inp.classList.add("inp-err");
+    warn.classList.remove("hide");
+    return true;
+  } else {
+    inp.classList.remove("inp-err");
+    warn.classList.add("hide");
+    return false;
+  }
+}
+
 function prevKit(){
   var dod=document.getElementById("r_dod").value;
   var box=document.getElementById("kitPrev");
   if(dod){box.classList.remove("hide");box.innerHTML="Kit #1 auto on: "+fmtDate(dod)+" | Next: "+fmtDate(addDays(dod,30));}
   else box.classList.add("hide");
 }
+
 function doReg(){
   var deic=document.getElementById("r_deic").value.trim();
   var name=document.getElementById("r_name").value.trim();
   var dod=document.getElementById("r_dod").value;
   var ph=document.getElementById("r_ph").value.trim();
-  if(!deic||!name||!ph){alert("DEIC, Name and Phone are required!");return;}
-  if(!dod){alert("Discharge date is required!");return;}
   
-  // DEIC Validation Check
-  var isDuplicate = DB.some(function(item){
-    return item.deic.toLowerCase() === deic.toLowerCase();
-  });
-  if(isDuplicate){
+  if(checkDeicDup()){
     showToast("Deic number already in use", "err");
+    document.getElementById("r_deic").focus();
     return;
   }
+
+  if(!deic||!name||!ph){alert("DEIC, Name and Phone are required!");return;}
+  if(!dod){alert("Discharge date is required!");return;}
 
   DB.unshift({id:uid(),deic:deic,name:name,bwt:document.getElementById("r_bwt").value||"",
     diagnosis:document.getElementById("r_dx").value||"",dob:document.getElementById("r_dob").value||"",
@@ -498,7 +528,7 @@ function saveEdit(id){
   var ph=document.getElementById("e_ph").value.trim();
   if(!deic||!name||!ph){alert("DEIC, Name and Phone required!");return;}
 
-  // DEIC Validation Check on Edit
+  // DEIC Check on Edit
   var isDuplicate = DB.some(function(item){
     return item.id !== id && item.deic.toLowerCase() === deic.toLowerCase();
   });
