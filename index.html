@@ -7,6 +7,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <title>Kuzhanthai Pettagam - SNCU DGL</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Tamil:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<!-- html2pdf Library for direct PDF Download -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%;width:100%;overflow:hidden}
@@ -267,7 +269,6 @@ function renderReg(){
     '</div>';
 }
 
-// Smart Real-time DEIC Duplicate Check
 function checkDeicDup(){
   var inp = document.getElementById("r_deic");
   var warn = document.getElementById("deicWarn");
@@ -528,7 +529,6 @@ function saveEdit(id){
   var ph=document.getElementById("e_ph").value.trim();
   if(!deic||!name||!ph){alert("DEIC, Name and Phone required!");return;}
 
-  // DEIC Check on Edit
   var isDuplicate = DB.some(function(item){
     return item.id !== id && item.deic.toLowerCase() === deic.toLowerCase();
   });
@@ -603,6 +603,7 @@ function renderReports(){
 }
 
 // ── REPORT LIST MODAL ─────────────────────────────────────────────────────────
+var _curRptTitle = "";
 function showRptList(type){
   var td=today();var title="";var rows=[];var isDM=false;
   var allV=DB.reduce(function(a,n){return a.concat((n.visits||[]).map(function(v){return {v:v,n:n};}));},[]);
@@ -614,14 +615,19 @@ function showRptList(type){
   else if(type==="tnew"){title="New Kits Today (#1)";rows=allV.filter(function(x){return x.v.date===td&&x.v.kitNum===1;}).map(function(x){return[x.n.deic,x.n.name,"1/12",fmtDate(x.v.date),"New Kit"];});}
   else if(type==="tfu"){title="Follow-up Kits Today";rows=allV.filter(function(x){return x.v.date===td&&x.v.kitNum>1;}).map(function(x){return[x.n.deic,x.n.name,x.v.kitNum+"/12",fmtDate(x.v.date),"Follow-up"];});}
   else if(type==="range"){title="Kits: "+fmtDate(rFrom)+" to "+fmtDate(rTo);rows=allV.filter(function(x){return x.v.date>=rFrom&&x.v.date<=rTo;}).map(function(x){return[x.n.deic,x.n.name,x.v.kitNum+"/12",fmtDate(x.v.date),x.v.kitNum===1?"New Kit":"Follow-up"];});}
+  _curRptTitle = title;
   var cols=isDM?["DEIC","Baby Name","Kits","Status Date","Status"]:["DEIC","Baby Name","Kits","Last Kit","Status"];
-  var tbl='<div style="overflow-x:auto"><table class="tbl" id="rptTable"><thead><tr>'+cols.map(function(h){return'<th>'+h+'</th>';}).join('')+'</tr></thead><tbody>'+
+  var tbl='<div style="overflow-x:auto" id="pdfPrintContainer"><table class="tbl" id="rptTable"><thead><tr>'+cols.map(function(h){return'<th>'+h+'</th>';}).join('')+'</tr></thead><tbody>'+
     (rows.length?rows.map(function(r,i){return'<tr>'+r.map(function(c){return'<td>'+escH(String(c||"-"))+'</td>';}).join('')+'</tr>';}).join(''):'<tr><td colspan="5" style="text-align:center;padding:16px;color:#5A7070">No data</td></tr>')+
     '</tbody></table></div>';
   var html='<div class="ovl" onclick="closeModal()"><div class="mdl" onclick="event.stopPropagation()">';
   html+='<div class="mhdl"></div>';
   html+='<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px"><div><div style="font-size:14px;font-weight:700;color:#0B6E6E">'+escH(title)+'</div><div style="font-size:11px;color:#5A7070">'+rows.length+' records</div></div><button onclick="closeModal()" style="background:none;border:none;font-size:20px;cursor:pointer;color:#5A7070">&times;</button></div>';
-  html+='<div style="display:flex;gap:6px;margin-bottom:10px"><button class="btn btn-teal btn-sm" style="flex:1" onclick="doPDF()">PDF / Print</button><button class="btn btn-orange btn-sm" style="flex:1" onclick="doCSV(\''+escH(title)+'\')">Excel / CSV</button></div>';
+  html+='<div style="display:flex;gap:6px;margin-bottom:10px">'+
+    '<button class="btn btn-teal btn-sm" style="flex:1" onclick="viewPrintPDF()">View / Print PDF</button>'+
+    '<button class="btn btn-green btn-sm" style="flex:1" onclick="downloadPDF()">Download PDF</button>'+
+    '<button class="btn btn-orange btn-sm" style="flex:1" onclick="doCSV(\''+escH(title)+'\')">Excel / CSV</button>'+
+    '</div>';
   html+=tbl;
   html+='<div style="margin-top:10px"><button class="btn btn-out" onclick="closeModal()">Close</button></div>';
   html+='</div></div>';
@@ -629,16 +635,48 @@ function showRptList(type){
 }
 function closeModal(){document.getElementById("modal").innerHTML="";document.getElementById("modal").classList.add("hide");}
 
-// ── PDF ───────────────────────────────────────────────────────────────────────
-function doPDF(){
+// ── PDF VIEW / PRINT (Persistent, Data Safe on Refresh) ───────────────────────
+function viewPrintPDF(){
   var tbl=document.getElementById("rptTable");if(!tbl){alert("No data");return;}
-  var win=window.open("","_blank","width=900,height=600");
-  win.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"/><title>Report</title>'+
-    '<style>body{font-family:Arial,sans-serif;margin:20px}h2{color:#0B6E6E;font-size:16px;margin-bottom:4px}.sub{font-size:11px;color:#666;margin-bottom:14px}table{width:100%;border-collapse:collapse;font-size:11px}th{background:#0B6E6E;color:#fff;padding:7px 6px;text-align:left}td{padding:6px;border-bottom:1px solid #ddd}tr:nth-child(even) td{background:#f8f8f8}.footer{margin-top:14px;font-size:10px;color:#888;text-align:right}@media print{button{display:none}}</style>'+
-    '</head><body><h2>Kuzhanthai Pettagam - SNCU DGL</h2><div class="sub">Printed: '+fmtDate(today())+'</div>'+
-    tbl.outerHTML+'<div class="footer">DGL Medical College Hospital &bull; SNCU</div>'+
-    '<script>window.onload=function(){window.print();};<\/script></body></html>');
-  win.document.close();
+  var htmlContent = '<!DOCTYPE html><html><head><meta charset="UTF-8"/><title>'+escH(_curRptTitle)+'</title>'+
+    '<style>body{font-family:Arial,sans-serif;margin:20px}h2{color:#0B6E6E;font-size:16px;margin-bottom:4px}.sub{font-size:11px;color:#666;margin-bottom:14px}table{width:100%;border-collapse:collapse;font-size:11px}th{background:#0B6E6E;color:#fff;padding:7px 6px;text-align:left}td{padding:6px;border-bottom:1px solid #ddd}tr:nth-child(even) td{background:#f8f8f8}.footer{margin-top:14px;font-size:10px;color:#888;text-align:right}@media print{.no-print{display:none}}</style>'+
+    '</head><body>'+
+    '<div class="no-print" style="margin-bottom:12px"><button onclick="window.print()" style="background:#0B6E6E;color:#fff;border:none;padding:8px 16px;border-radius:6px;cursor:pointer;font-weight:bold">Print Document</button></div>'+
+    '<h2>Kuzhanthai Pettagam - SNCU DGL</h2>'+
+    '<div style="font-size:13px;font-weight:bold;color:#333;margin-bottom:4px">'+escH(_curRptTitle)+'</div>'+
+    '<div class="sub">Generated: '+fmtDate(today())+'</div>'+
+    tbl.outerHTML+
+    '<div class="footer">DGL Medical College Hospital &bull; SNCU</div>'+
+    '</body></html>';
+
+  var blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
+  var blobUrl = URL.createObjectURL(blob);
+  window.open(blobUrl, "_blank");
+}
+
+// ── DIRECT PDF DOWNLOAD ────────────────────────────────────────────────────────
+function downloadPDF(){
+  var tbl = document.getElementById("pdfPrintContainer");
+  if(!tbl){alert("No data");return;}
+  
+  var element = document.createElement("div");
+  element.style.padding = "10px";
+  element.innerHTML = '<h2 style="color:#0B6E6E;font-size:16px;margin-bottom:4px">Kuzhanthai Pettagam - SNCU DGL</h2>'+
+    '<div style="font-size:13px;font-weight:bold;color:#333;margin-bottom:4px">'+escH(_curRptTitle)+'</div>'+
+    '<div style="font-size:11px;color:#666;margin-bottom:12px">Generated: '+fmtDate(today())+'</div>'+
+    tbl.innerHTML+
+    '<div style="margin-top:14px;font-size:10px;color:#888;text-align:right">DGL Medical College Hospital &bull; SNCU</div>';
+
+  var opt = {
+    margin:       [10, 10, 10, 10],
+    filename:     'KP_'+_curRptTitle.replace(/[^a-zA-Z0-9]/g,"_")+'_'+today()+'.pdf',
+    image:        { type: 'jpeg', quality: 0.98 },
+    html2canvas:  { scale: 2 },
+    jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+  };
+
+  showToast("Generating PDF download...", "ok");
+  html2pdf().set(opt).from(element).save();
 }
 
 // ── CSV ───────────────────────────────────────────────────────────────────────
