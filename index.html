@@ -143,7 +143,7 @@ body{background:#F7F9F9;font-family:'Inter',sans-serif;color:#1A2B2B;height:100v
   const db = getDatabase(app);
   const dbRef = ref(db, 'kp_records');
 
-  // Global Function to save to Firebase
+  // Cloud Save
   window.cloudSave = function() {
     set(dbRef, window.DB || [])
       .then(() => console.log("Synced to Firebase Cloud!"))
@@ -154,7 +154,7 @@ body{background:#F7F9F9;font-family:'Inter',sans-serif;color:#1A2B2B;height:100v
       });
   };
 
-  // Live Listener from Firebase Cloud
+  // Realtime Cloud Listener
   onValue(dbRef, (snapshot) => {
     const data = snapshot.val();
     const dot = document.getElementById("statusDot");
@@ -274,6 +274,16 @@ function doReg(){
   var ph=document.getElementById("r_ph").value.trim();
   if(!deic||!name||!ph){alert("DEIC, Name and Phone are required!");return;}
   if(!dod){alert("Discharge date is required!");return;}
+  
+  // DEIC Validation Check
+  var isDuplicate = DB.some(function(item){
+    return item.deic.toLowerCase() === deic.toLowerCase();
+  });
+  if(isDuplicate){
+    showToast("Deic number already in use", "err");
+    return;
+  }
+
   DB.unshift({id:uid(),deic:deic,name:name,bwt:document.getElementById("r_bwt").value||"",
     diagnosis:document.getElementById("r_dx").value||"",dob:document.getElementById("r_dob").value||"",
     dod:dod,kitDate:dod,phone:ph,visits:[{date:dod,time:"Discharge",kitNum:1,auto:true}],
@@ -385,7 +395,7 @@ function doDef(q){
         '<div style="display:flex;gap:6px">'+
         '<button class="btn btn-out btn-sm" onclick="openPt(\''+n.id+'\')">Details</button>'+
         '<button class="btn btn-sm btn-gray" onclick="doStatus(\''+n.id+'\',\'dead\')">Dead</button>'+
-        '<button class="btn btn-sm btn-purple" onclick="doStatus(\''+n.id+'\',\'migrated\')">Migrated</button>'+
+        '<button class="btn btn-sm btn-purple" onclick="doStatus(\''+n.id+'\',\'migrated\')">Mark Migrated</button>'+
         '</div></div>';
     }).join(""):'<div class="empty"><div class="eico">&#128270;</div>No results</div>';
 }
@@ -487,6 +497,16 @@ function saveEdit(id){
   var name=document.getElementById("e_name").value.trim();
   var ph=document.getElementById("e_ph").value.trim();
   if(!deic||!name||!ph){alert("DEIC, Name and Phone required!");return;}
+
+  // DEIC Validation Check on Edit
+  var isDuplicate = DB.some(function(item){
+    return item.id !== id && item.deic.toLowerCase() === deic.toLowerCase();
+  });
+  if(isDuplicate){
+    showToast("Deic number already in use", "err");
+    return;
+  }
+
   var newDod=document.getElementById("e_dod").value;
   if(newDod&&newDod!==n.dod&&n.visits&&n.visits.length>0){n.visits[0].date=newDod;n.kitDate=newDod;}
   n.deic=deic;n.name=name;n.bwt=document.getElementById("e_bwt").value||"";
