@@ -15,11 +15,11 @@ html,body{height:100%;width:100%;overflow:hidden}
 body{background:#F7F9F9;font-family:'Inter',sans-serif;color:#1A2B2B;height:100vh;display:flex;flex-direction:column}
 #app{width:100%;height:100vh;display:flex;flex-direction:column;overflow:hidden}
 
-/* Top Header Block - Increased Padding/Height */
-.hdr{background:linear-gradient(135deg,#084F4F,#0B6E6E);padding:28px 18px 22px;position:relative;z-index:50;box-shadow:0 2px 8px rgba(0,0,0,0.2)}
+/* Top Header Block */
+.hdr{background:linear-gradient(135deg,#084F4F,#0B6E6E);padding:24px 18px 20px;position:relative;z-index:50;box-shadow:0 2px 8px rgba(0,0,0,0.2)}
 .hdr-title{font-family:'Noto Sans Tamil',sans-serif;font-size:20px;font-weight:700;color:#fff;line-height:1.2}
 .hdr-sub{font-size:10px;color:rgba(255,255,255,0.7);letter-spacing:1px;text-transform:uppercase;margin-top:4px}
-.hdr-badge{display:inline-block;background:#E8820C;color:#fff;font-size:10px;font-weight:700;padding:4px 12px;border-radius:20px;margin-top:8px}
+.hdr-badge{display:inline-block;background:#E8820C;color:#fff;font-size:10px;font-weight:700;padding:4px 10px;border-radius:20px}
 
 .ibar{background:#063a3a;padding:8px 16px;font-size:11px;color:rgba(255,255,255,0.65);display:flex;align-items:center;gap:6px;flex-shrink:0}
 .dot{width:6px;height:6px;border-radius:50%;background:#e74c3c;flex-shrink:0}
@@ -103,9 +103,11 @@ body{background:#F7F9F9;font-family:'Inter',sans-serif;color:#1A2B2B;height:100v
       <div>
         <div class="hdr-title">குழந்தை பெட்டகம்</div>
         <div class="hdr-sub">SNCU &middot; DGL Medical College Hospital</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px">
+        <button onclick="openAdmin()" style="background:rgba(255,255,255,0.15);border:none;border-radius:7px;padding:7px 9px;cursor:pointer;font-size:16px;color:#fff">&#9881;</button>
         <span class="hdr-badge">Medication Kit Tracker</span>
       </div>
-      <button onclick="openAdmin()" style="background:rgba(255,255,255,0.15);border:none;border-radius:7px;padding:7px 9px;cursor:pointer;font-size:16px;color:#fff">&#9881;</button>
     </div>
   </div>
   <div class="ibar">
