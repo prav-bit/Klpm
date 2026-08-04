@@ -15,7 +15,6 @@ html,body{height:100%;width:100%;overflow:hidden}
 body{background:#F7F9F9;font-family:'Inter',sans-serif;color:#1A2B2B;height:100vh;display:flex;flex-direction:column}
 #app{width:100%;height:100vh;display:flex;flex-direction:column;overflow:hidden}
 
-/* Top Header Block - Height Further Increased */
 .hdr{background:linear-gradient(135deg,#084F4F,#0B6E6E);padding:42px 18px 36px;position:relative;z-index:50;box-shadow:0 2px 8px rgba(0,0,0,0.2)}
 .hdr-row1{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
 .hdr-row2{display:flex;justify-content:space-between;align-items:center}
@@ -23,11 +22,13 @@ body{background:#F7F9F9;font-family:'Inter',sans-serif;color:#1A2B2B;height:100v
 .hdr-sub{font-size:10px;color:rgba(255,255,255,0.7);letter-spacing:1px;text-transform:uppercase}
 .hdr-badge{display:inline-block;background:#E8820C;color:#fff;font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px}
 
-.ibar{background:#063a3a;padding:8px 16px;font-size:11px;color:rgba(255,255,255,0.65);display:flex;align-items:center;gap:6px;flex-shrink:0}
+/* Slightly decreased height for sync bar */
+.ibar{background:#063a3a;padding:5px 16px;font-size:11px;color:rgba(255,255,255,0.65);display:flex;align-items:center;gap:6px;flex-shrink:0}
 .dot{width:6px;height:6px;border-radius:50%;background:#e74c3c;flex-shrink:0}
 .tabs{display:flex;background:#063a3a;overflow-x:auto;flex-shrink:0}
 .tabs::-webkit-scrollbar{display:none}
-.tab{flex:1;min-width:55px;padding:14px 6px;font-family:'Noto Sans Tamil',sans-serif;font-size:11px;font-weight:600;color:rgba(255,255,255,0.55);background:none;border:none;border-bottom:3px solid transparent;cursor:pointer;white-space:nowrap}
+/* Slightly decreased padding for tabs */
+.tab{flex:1;min-width:55px;padding:9px 6px;font-family:'Noto Sans Tamil',sans-serif;font-size:11px;font-weight:600;color:rgba(255,255,255,0.55);background:none;border:none;border-bottom:3px solid transparent;cursor:pointer;white-space:nowrap}
 .tab.on{color:#fff;border-bottom-color:#E8820C}
 .tbadge{background:#E8820C;color:#fff;font-size:9px;font-weight:700;padding:1px 4px;border-radius:8px;margin-left:2px}
 .pg{flex:1;padding:14px;overflow-y:auto;height:0}
