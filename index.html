@@ -15,11 +15,13 @@ html,body{height:100%;width:100%;overflow:hidden}
 body{background:#F7F9F9;font-family:'Inter',sans-serif;color:#1A2B2B;height:100vh;display:flex;flex-direction:column}
 #app{width:100%;height:100vh;display:flex;flex-direction:column;overflow:hidden}
 
-/* Top Header Block - Adjusted Title Row Below Controls */
-.hdr{background:linear-gradient(135deg,#084F4F,#0B6E6E);padding:18px 18px 20px;position:relative;z-index:50;box-shadow:0 2px 8px rgba(0,0,0,0.2)}
+/* Top Header Block */
+.hdr{background:linear-gradient(135deg,#084F4F,#0B6E6E);padding:20px 18px 18px;position:relative;z-index:50;box-shadow:0 2px 8px rgba(0,0,0,0.2)}
+.hdr-row1{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.hdr-row2{display:flex;justify-content:space-between;align-items:center}
 .hdr-title{font-family:'Noto Sans Tamil',sans-serif;font-size:20px;font-weight:700;color:#fff;line-height:1.2}
-.hdr-sub{font-size:10px;color:rgba(255,255,255,0.7);letter-spacing:1px;text-transform:uppercase;margin-top:4px}
-.hdr-badge{display:inline-block;background:#E8820C;color:#fff;font-size:10px;font-weight:700;padding:4px 10px;border-radius:20px}
+.hdr-sub{font-size:10px;color:rgba(255,255,255,0.7);letter-spacing:1px;text-transform:uppercase}
+.hdr-badge{display:inline-block;background:#E8820C;color:#fff;font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px}
 
 .ibar{background:#063a3a;padding:8px 16px;font-size:11px;color:rgba(255,255,255,0.65);display:flex;align-items:center;gap:6px;flex-shrink:0}
 .dot{width:6px;height:6px;border-radius:50%;background:#e74c3c;flex-shrink:0}
@@ -99,15 +101,15 @@ body{background:#F7F9F9;font-family:'Inter',sans-serif;color:#1A2B2B;height:100v
 <body>
 <div id="app">
   <div class="hdr">
-    <!-- Top Action Controls Row -->
-    <div style="display:flex;justify-content:flex-end;align-items:center;gap:8px;margin-bottom:12px">
-      <span class="hdr-badge">Medication Kit Tracker</span>
-      <button onclick="openAdmin()" style="background:rgba(255,255,255,0.15);border:none;border-radius:7px;padding:7px 9px;cursor:pointer;font-size:16px;color:#fff">&#9881;</button>
-    </div>
-    <!-- Title & Subtitle Row (Shifted One Line Below) -->
-    <div>
+    <!-- Row 1: Title on left, Admin Icon on opposite corner -->
+    <div class="hdr-row1">
       <div class="hdr-title">குழந்தை பெட்டகம்</div>
+      <button onclick="openAdmin()" style="background:rgba(255,255,255,0.15);border:none;border-radius:7px;padding:6px 8px;cursor:pointer;font-size:16px;color:#fff">&#9881;</button>
+    </div>
+    <!-- Row 2: Subtitle on left, Medication Kit Tracker on opposite corner -->
+    <div class="hdr-row2">
       <div class="hdr-sub">SNCU &middot; DGL Medical College Hospital</div>
+      <span class="hdr-badge">Medication Kit Tracker</span>
     </div>
   </div>
   <div class="ibar">
