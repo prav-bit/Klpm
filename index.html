@@ -353,7 +353,9 @@ function doReg(){
 
   var initCount = parseInt(document.getElementById("r_initKits").value) || 1;
   var visits = [];
+  var usedDates = {};
   
+  usedDates[dod] = true;
   visits.push({date: dod, time: "Discharge", kitNum: 1, auto: true});
   
   if(initCount > 1){
@@ -365,6 +367,11 @@ function doReg(){
         alert("Please select the date for Kit #" + kNum);
         return;
       }
+      if(usedDates[kDate]){
+        showToast("More than one kit cannot be recorded on the same date ("+fmtDate(kDate)+")", "err");
+        return;
+      }
+      usedDates[kDate] = true;
       visits.push({
         date: kDate,
         time: "Historical Entry",
@@ -620,11 +627,23 @@ function saveEdit(id){
   n.dod=newDod||n.dod;n.phone=ph;
   dbSave();showToast("Details updated!");openPt(id);
 }
+
 function giveKit(id){
   var n=DB.find(function(x){return x.id===id;});if(!n)return;
+  var td = today();
+  
+  // Rule: Check if a kit was already recorded on today's date
+  var alreadyGivenToday = (n.visits || []).some(function(v){
+    return v.date === td;
+  });
+  if(alreadyGivenToday){
+    showToast("A kit has already been given today!", "err");
+    return;
+  }
+
   var num=(n.visits?n.visits.length:0)+1;
   if(!n.visits)n.visits=[];
-  n.visits.push({date:today(),time:nowt(),kitNum:num});
+  n.visits.push({date:td,time:nowt(),kitNum:num});
   n.completed=n.visits.length>=12;
   dbSave();showToast("Kit #"+num+" recorded!");updBadge();updIbar();openPt(id);
 }
