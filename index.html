@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <title>Kuzhanthai Pettagam - SNCU DGL</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Tamil:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
-<!-- html2pdf Library for direct PDF Download -->
+<!-- html2pdf Library for Direct PDF Download -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -252,7 +252,7 @@ function renderReg(){
     '<div class="ctitle">New Baby Registration</div>'+
     '<div class="fld"><label class="lbl">DEIC Number *</label>'+
       '<input class="inp" id="r_deic" placeholder="DEIC-XXXX" oninput="checkDeicDup()"/>'+
-      '<div class="ibox ibox-err hide" id="deicWarn">⚠️ Deic number already in use</div>'+
+      '<div class="ibox ibox-err hide" id="deicWarn">⚠️ DEIC number already in use</div>'+
     '</div>'+
     '<div class="fld"><label class="lbl">Baby Name *</label><input class="inp" id="r_name" placeholder="Baby of / Name"/></div>'+
     '<div class="g2">'+
@@ -260,13 +260,30 @@ function renderReg(){
       '<div class="fld"><label class="lbl">Date of Birth</label><input class="inp" type="date" id="r_dob"/></div>'+
     '</div>'+
     '<div class="fld"><label class="lbl">Diagnosis</label><input class="inp" id="r_dx" placeholder="Preterm, LBW, HIE..."/></div>'+
-    '<div class="fld"><label class="lbl">Discharge Date *</label>'+
-      '<input class="inp" type="date" id="r_dod" onchange="prevKit()"/>'+
-      '<div class="ibox hide" id="kitPrev"></div>'+
+    '<div class="fld"><label class="lbl">Discharge Date (Kit #1 Date) *</label>'+
+      '<input class="inp" type="date" id="r_dod" onchange="renderPastKitInputs()"/>'+
     '</div>'+
+    '<div class="fld"><label class="lbl">Total Kits Given So Far</label>'+
+      '<select class="inp" id="r_initKits" onchange="renderPastKitInputs()">'+
+        '<option value="1">1 Kit (Discharge Only)</option>'+
+        '<option value="2">2 Kits</option>'+
+        '<option value="3">3 Kits</option>'+
+        '<option value="4">4 Kits</option>'+
+        '<option value="5">5 Kits</option>'+
+        '<option value="6">6 Kits</option>'+
+        '<option value="7">7 Kits</option>'+
+        '<option value="8">8 Kits</option>'+
+        '<option value="9">9 Kits</option>'+
+        '<option value="10">10 Kits</option>'+
+        '<option value="11">11 Kits</option>'+
+      '</select>'+
+    '</div>'+
+    '<div id="pastKitDatesArea" style="margin-bottom:10px;"></div>'+
     '<div class="fld"><label class="lbl">Phone Number *</label><input class="inp" type="tel" id="r_ph" placeholder="9XXXXXXXXX" maxlength="10"/></div>'+
     '<button class="btn btn-teal" onclick="doReg()">Register Baby</button>'+
     '</div>';
+    
+  renderPastKitInputs();
 }
 
 function checkDeicDup(){
@@ -293,11 +310,30 @@ function checkDeicDup(){
   }
 }
 
-function prevKit(){
-  var dod=document.getElementById("r_dod").value;
-  var box=document.getElementById("kitPrev");
-  if(dod){box.classList.remove("hide");box.innerHTML="Kit #1 auto on: "+fmtDate(dod)+" | Next: "+fmtDate(addDays(dod,30));}
-  else box.classList.add("hide");
+function renderPastKitInputs(){
+  var count = parseInt(document.getElementById("r_initKits").value) || 1;
+  var dod = document.getElementById("r_dod").value;
+  var area = document.getElementById("pastKitDatesArea");
+  
+  if(!area) return;
+  
+  if(count <= 1){
+    area.innerHTML = dod ? '<div class="ibox">Next Visit (Kit #2): '+fmtDate(addDays(dod, 30))+'</div>' : '';
+    return;
+  }
+  
+  var html = '<div style="background:#E0F4F4;padding:10px;border-radius:8px;border:1px solid #D0E4E4;margin-top:5px;">'+
+             '<div style="font-size:11px;font-weight:700;color:#0B6E6E;margin-bottom:8px;">Select Historical Kit Dates:</div>';
+             
+  for(var i = 2; i <= count; i++){
+    var estDate = dod ? addDays(dod, (i-1)*30) : '';
+    html += '<div class="fld" style="margin-bottom:6px;">'+
+              '<label class="lbl">Kit #'+i+' Date</label>'+
+              '<input class="inp past-kit-date" type="date" data-kit="'+i+'" value="'+estDate+'"/>'+
+            '</div>';
+  }
+  html += '</div>';
+  area.innerHTML = html;
 }
 
 function doReg(){
@@ -307,7 +343,7 @@ function doReg(){
   var ph=document.getElementById("r_ph").value.trim();
   
   if(checkDeicDup()){
-    showToast("Deic number already in use", "err");
+    showToast("DEIC number already in use", "err");
     document.getElementById("r_deic").focus();
     return;
   }
@@ -315,11 +351,50 @@ function doReg(){
   if(!deic||!name||!ph){alert("DEIC, Name and Phone are required!");return;}
   if(!dod){alert("Discharge date is required!");return;}
 
-  DB.unshift({id:uid(),deic:deic,name:name,bwt:document.getElementById("r_bwt").value||"",
-    diagnosis:document.getElementById("r_dx").value||"",dob:document.getElementById("r_dob").value||"",
-    dod:dod,kitDate:dod,phone:ph,visits:[{date:dod,time:"Discharge",kitNum:1,auto:true}],
-    status:"active",completed:false,regDate:today()});
-  dbSave(); showToast("Baby registered successfully!"); renderReg(); updBadge(); updIbar();
+  var initCount = parseInt(document.getElementById("r_initKits").value) || 1;
+  var visits = [];
+  
+  visits.push({date: dod, time: "Discharge", kitNum: 1, auto: true});
+  
+  if(initCount > 1){
+    var pastInputs = document.querySelectorAll(".past-kit-date");
+    for(var k = 0; k < pastInputs.length; k++){
+      var kNum = k + 2;
+      var kDate = pastInputs[k].value;
+      if(!kDate){
+        alert("Please select the date for Kit #" + kNum);
+        return;
+      }
+      visits.push({
+        date: kDate,
+        time: "Historical Entry",
+        kitNum: kNum,
+        auto: false
+      });
+    }
+  }
+
+  DB.unshift({
+    id: uid(),
+    deic: deic,
+    name: name,
+    bwt: document.getElementById("r_bwt").value||"",
+    diagnosis: document.getElementById("r_dx").value||"",
+    dob: document.getElementById("r_dob").value||"",
+    dod: dod,
+    kitDate: dod,
+    phone: ph,
+    visits: visits,
+    status: "active",
+    completed: visits.length >= 12,
+    regDate: today()
+  });
+
+  dbSave();
+  showToast("Baby registered with " + visits.length + " kit(s) recorded!");
+  renderReg();
+  updBadge();
+  updIbar();
 }
 
 // ── SEARCH ────────────────────────────────────────────────────────────────────
@@ -624,7 +699,7 @@ function showRptList(type){
   html+='<div class="mhdl"></div>';
   html+='<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px"><div><div style="font-size:14px;font-weight:700;color:#0B6E6E">'+escH(title)+'</div><div style="font-size:11px;color:#5A7070">'+rows.length+' records</div></div><button onclick="closeModal()" style="background:none;border:none;font-size:20px;cursor:pointer;color:#5A7070">&times;</button></div>';
   html+='<div style="display:flex;gap:6px;margin-bottom:10px">'+
-    '<button class="btn btn-teal btn-sm" style="flex:1" onclick="viewPrintPDF()">View / Print PDF</button>'+
+    '<button class="btn btn-teal btn-sm" style="flex:1" onclick="viewPrintPDF()">View PDF</button>'+
     '<button class="btn btn-green btn-sm" style="flex:1" onclick="downloadPDF()">Download PDF</button>'+
     '<button class="btn btn-orange btn-sm" style="flex:1" onclick="doCSV(\''+escH(title)+'\')">Excel / CSV</button>'+
     '</div>';
@@ -635,13 +710,12 @@ function showRptList(type){
 }
 function closeModal(){document.getElementById("modal").innerHTML="";document.getElementById("modal").classList.add("hide");}
 
-// ── PDF VIEW / PRINT (Persistent, Data Safe on Refresh) ───────────────────────
+// ── PDF VIEW ──────────────────────────────────────────────────────────────────
 function viewPrintPDF(){
   var tbl=document.getElementById("rptTable");if(!tbl){alert("No data");return;}
   var htmlContent = '<!DOCTYPE html><html><head><meta charset="UTF-8"/><title>'+escH(_curRptTitle)+'</title>'+
     '<style>body{font-family:Arial,sans-serif;margin:20px}h2{color:#0B6E6E;font-size:16px;margin-bottom:4px}.sub{font-size:11px;color:#666;margin-bottom:14px}table{width:100%;border-collapse:collapse;font-size:11px}th{background:#0B6E6E;color:#fff;padding:7px 6px;text-align:left}td{padding:6px;border-bottom:1px solid #ddd}tr:nth-child(even) td{background:#f8f8f8}.footer{margin-top:14px;font-size:10px;color:#888;text-align:right}@media print{.no-print{display:none}}</style>'+
     '</head><body>'+
-    '<div class="no-print" style="margin-bottom:12px"><button onclick="window.print()" style="background:#0B6E6E;color:#fff;border:none;padding:8px 16px;border-radius:6px;cursor:pointer;font-weight:bold">Print Document</button></div>'+
     '<h2>Kuzhanthai Pettagam - SNCU DGL</h2>'+
     '<div style="font-size:13px;font-weight:bold;color:#333;margin-bottom:4px">'+escH(_curRptTitle)+'</div>'+
     '<div class="sub">Generated: '+fmtDate(today())+'</div>'+
