@@ -103,6 +103,9 @@ body{background:#F7F9F9;font-family:'Inter',sans-serif;color:#1A2B2B;height:100v
 .login-card{background:#fff;border-radius:12px;padding:24px;width:100%;max-width:400px;box-shadow:0 4px 20px rgba(0,0,0,0.2)}
 .login-title{font-family:'Noto Sans Tamil',sans-serif;font-size:18px;font-weight:700;color:#0B6E6E;text-align:center;margin-bottom:4px}
 .login-sub{font-size:11px;color:#5A7070;text-align:center;text-transform:uppercase;letter-spacing:1px;margin-bottom:20px}
+.pwd-wrap{position:relative;display:flex;align-items:center}
+.pwd-wrap .inp{padding-right:38px}
+.eye-btn{position:absolute;right:10px;background:none;border:none;cursor:pointer;font-size:16px;color:#5A7070;padding:4px}
 </style>
 </head>
 <body>
@@ -118,7 +121,10 @@ body{background:#F7F9F9;font-family:'Inter',sans-serif;color:#1A2B2B;height:100v
     </div>
     <div class="fld">
       <label class="lbl">Password</label>
-      <input class="inp" type="password" id="loginPass" placeholder="Kitdgl@123"/>
+      <div class="pwd-wrap">
+        <input class="inp" type="password" id="loginPass" placeholder="Kitdgl@123"/>
+        <button type="button" class="eye-btn" onclick="togglePasswordVisibility()" id="eyeBtn">👁️</button>
+      </div>
     </div>
     <div id="loginErr" style="color:#C0392B;font-size:11px;margin-bottom:10px;text-align:center"></div>
     <button class="btn btn-teal" onclick="handleLogin()">Login to Dashboard</button>
@@ -268,6 +274,18 @@ body{background:#F7F9F9;font-family:'Inter',sans-serif;color:#1A2B2B;height:100v
 </script>
 
 <script>
+function togglePasswordVisibility() {
+  var passInp = document.getElementById("loginPass");
+  var eyeBtn = document.getElementById("eyeBtn");
+  if (passInp.type === "password") {
+    passInp.type = "text";
+    eyeBtn.textContent = "🙈";
+  } else {
+    passInp.type = "password";
+    eyeBtn.textContent = "👁️";
+  }
+}
+
 function handleLogin() {
   var u = document.getElementById("loginUser").value.trim();
   var p = document.getElementById("loginPass").value;
