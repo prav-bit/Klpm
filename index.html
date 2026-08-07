@@ -98,8 +98,8 @@ body{background:#F7F9F9;font-family:'Inter',sans-serif;color:#1A2B2B;height:100v
 .call-btn{display:inline-flex;align-items:center;gap:5px;background:#1A7A4A;color:#fff;border:none;border-radius:20px;padding:4px 12px;font-size:11px;font-weight:700;cursor:pointer;margin-top:5px}
 .del-entry-btn{background:#FDECEA;border:1.5px solid #C0392B;color:#C0392B;border-radius:6px;padding:3px 9px;font-size:10px;font-weight:700;cursor:pointer}
 
-/* Login Screen Styles */
-#loginScreen{position:fixed;inset:0;background:#0B6E6E;z-index:999;display:flex;align-items:center;justify-content:center;padding:20px}
+/* Login Screen Styles - Hidden by default to prevent refresh flash */
+#loginScreen{position:fixed;inset:0;background:#0B6E6E;z-index:999;display:none;align-items:center;justify-content:center;padding:20px}
 .login-card{background:#fff;border-radius:12px;padding:24px;width:100%;max-width:400px;box-shadow:0 4px 20px rgba(0,0,0,0.2)}
 .login-title{font-family:'Noto Sans Tamil',sans-serif;font-size:18px;font-weight:700;color:#0B6E6E;text-align:center;margin-bottom:4px}
 .login-sub{font-size:11px;color:#5A7070;text-align:center;text-transform:uppercase;letter-spacing:1px;margin-bottom:20px}
@@ -125,7 +125,7 @@ body{background:#F7F9F9;font-family:'Inter',sans-serif;color:#1A2B2B;height:100v
   </div>
 </div>
 
-<!-- MAIN APP (Hidden until login) -->
+<!-- MAIN APP (Hidden by default until session verified) -->
 <div id="app" class="hide">
   <div class="hdr">
     <!-- Row 1: Title on left, Admin Icon on opposite corner -->
@@ -206,15 +206,22 @@ body{background:#F7F9F9;font-family:'Inter',sans-serif;color:#1A2B2B;height:100v
     signOut(auth).then(() => {
       if(dbUnsubscribe) dbUnsubscribe();
       document.getElementById("app").classList.add("hide");
-      document.getElementById("loginScreen").classList.remove("hide");
+      const loginScreen = document.getElementById("loginScreen");
+      loginScreen.style.display = "flex";
+      loginScreen.classList.remove("hide");
     });
   };
 
-  // Auth State Listener
+  // Auth State Listener - Smooth check without flashing login screen
   onAuthStateChanged(auth, (user) => {
+    const loginScreen = document.getElementById("loginScreen");
+    const appScreen = document.getElementById("app");
+
     if (user) {
-      document.getElementById("loginScreen").classList.add("hide");
-      document.getElementById("app").classList.remove("hide");
+      // User is logged in: keep login hidden, show dashboard app
+      loginScreen.classList.add("hide");
+      loginScreen.style.display = "none";
+      appScreen.classList.remove("hide");
       
       dbUnsubscribe = onValue(dbRef, (snapshot) => {
         const data = snapshot.val();
@@ -240,6 +247,11 @@ body{background:#F7F9F9;font-family:'Inter',sans-serif;color:#1A2B2B;height:100v
       renderReg();
       updBadge();
       updIbar();
+    } else {
+      // User is not logged in: show login screen
+      appScreen.classList.add("hide");
+      loginScreen.style.display = "flex";
+      loginScreen.classList.remove("hide");
     }
   });
 
