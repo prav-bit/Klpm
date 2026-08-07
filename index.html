@@ -118,15 +118,15 @@ body{background:#F7F9F9;font-family:'Inter',sans-serif;color:#1A2B2B;height:100v
     <div class="login-sub">SNCU &middot; Staff Portal Login</div>
     <div class="fld">
       <label class="lbl">Staff Username</label>
-      <input class="inp" id="loginUser" type="text" placeholder="Sncudgl@kit" autocomplete="new-password" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input class="inp" id="loginUser" type="text" autocomplete="new-password" autocorrect="off" autocapitalize="off" spellcheck="false"/>
     </div>
     <div class="fld">
       <label class="lbl">Password</label>
       <div class="pwd-wrap">
-        <input class="inp" type="password" id="loginPass" placeholder="Kitdgl@123" autocomplete="new-password" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+        <input class="inp" type="password" id="loginPass" autocomplete="new-password" autocorrect="off" autocapitalize="off" spellcheck="false"/>
         <button type="button" class="eye-btn" onclick="togglePasswordVisibility()" id="eyeBtn" title="Show/Hide Password">
           <!-- Default Open Eye SVG -->
-          <svg id="eyeIcon" viewBox="0 0 24 24"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
+          <svg id="eyeIcon" viewBox="0 0 24 24"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
         </button>
       </div>
     </div>
@@ -300,6 +300,7 @@ function handleLogin() {
     document.getElementById("loginErr").textContent = "Please enter username and password";
     return;
   }
+  document.getElementById("loginErr").textContent = "";
   window.fbLogin(u, p);
 }
 
