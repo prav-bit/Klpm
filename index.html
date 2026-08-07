@@ -97,10 +97,36 @@ body{background:#F7F9F9;font-family:'Inter',sans-serif;color:#1A2B2B;height:100v
 .tbl tr:nth-child(even) td{background:#F7F9F9}
 .call-btn{display:inline-flex;align-items:center;gap:5px;background:#1A7A4A;color:#fff;border:none;border-radius:20px;padding:4px 12px;font-size:11px;font-weight:700;cursor:pointer;margin-top:5px}
 .del-entry-btn{background:#FDECEA;border:1.5px solid #C0392B;color:#C0392B;border-radius:6px;padding:3px 9px;font-size:10px;font-weight:700;cursor:pointer}
+
+/* Login Screen Styles */
+#loginScreen{position:fixed;inset:0;background:#0B6E6E;z-index:999;display:flex;align-items:center;justify-content:center;padding:20px}
+.login-card{background:#fff;border-radius:12px;padding:24px;width:100%;max-width:400px;box-shadow:0 4px 20px rgba(0,0,0,0.2)}
+.login-title{font-family:'Noto Sans Tamil',sans-serif;font-size:18px;font-weight:700;color:#0B6E6E;text-align:center;margin-bottom:4px}
+.login-sub{font-size:11px;color:#5A7070;text-align:center;text-transform:uppercase;letter-spacing:1px;margin-bottom:20px}
 </style>
 </head>
 <body>
-<div id="app">
+
+<!-- STAFF LOGIN SCREEN -->
+<div id="loginScreen">
+  <div class="login-card">
+    <div class="login-title">குழந்தை பெட்டகம்</div>
+    <div class="login-sub">SNCU &middot; Staff Portal Login</div>
+    <div class="fld">
+      <label class="lbl">Staff Username</label>
+      <input class="inp" id="loginUser" placeholder="Sncudgl@kit" autocomplete="username"/>
+    </div>
+    <div class="fld">
+      <label class="lbl">Password</label>
+      <input class="inp" type="password" id="loginPass" placeholder="Kitdgl@123"/>
+    </div>
+    <div id="loginErr" style="color:#C0392B;font-size:11px;margin-bottom:10px;text-align:center"></div>
+    <button class="btn btn-teal" onclick="handleLogin()">Login to Dashboard</button>
+  </div>
+</div>
+
+<!-- MAIN APP (Hidden until login) -->
+<div id="app" class="hide">
   <div class="hdr">
     <!-- Row 1: Title on left, Admin Icon on opposite corner -->
     <div class="hdr-row1">
@@ -116,6 +142,7 @@ body{background:#F7F9F9;font-family:'Inter',sans-serif;color:#1A2B2B;height:100v
   <div class="ibar">
     <div class="dot" id="statusDot"></div>
     <span id="ibarTxt">Connecting to Cloud...</span>
+    <button onclick="handleLogout()" style="margin-left:auto;background:none;border:none;color:rgba(255,255,255,0.8);font-size:10px;cursor:pointer;text-decoration:underline">Logout</button>
   </div>
   <div class="tabs">
     <button class="tab on" onclick="goTab(0)">பதிவு</button>
@@ -135,9 +162,10 @@ body{background:#F7F9F9;font-family:'Inter',sans-serif;color:#1A2B2B;height:100v
 </div>
 <div id="modal" class="hide"></div>
 
-<!-- FIREBASE REALTIME DATABASE MODULE -->
+<!-- FIREBASE AUTH & REALTIME DATABASE MODULE -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
   import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
   const firebaseConfig = {
@@ -152,8 +180,68 @@ body{background:#F7F9F9;font-family:'Inter',sans-serif;color:#1A2B2B;height:100v
   };
 
   const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
   const db = getDatabase(app);
   const dbRef = ref(db, 'kp_records');
+
+  let dbUnsubscribe = null;
+
+  // Custom username mapping to Firebase Auth email
+  window.fbLogin = function(userInp, passInp) {
+    let emailToUse = userInp.trim();
+    if(emailToUse.toLowerCase() === "sncudgl@kit") {
+      emailToUse = "sncudgl@kit.internal";
+    }
+
+    signInWithEmailAndPassword(auth, emailToUse, passInp)
+      .then((userCredential) => {
+        document.getElementById("loginErr").textContent = "";
+      })
+      .catch((error) => {
+        document.getElementById("loginErr").textContent = "Invalid username or password!";
+      });
+  };
+
+  window.fbLogout = function() {
+    signOut(auth).then(() => {
+      if(dbUnsubscribe) dbUnsubscribe();
+      document.getElementById("app").classList.add("hide");
+      document.getElementById("loginScreen").classList.remove("hide");
+    });
+  };
+
+  // Auth State Listener
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      document.getElementById("loginScreen").classList.add("hide");
+      document.getElementById("app").classList.remove("hide");
+      
+      dbUnsubscribe = onValue(dbRef, (snapshot) => {
+        const data = snapshot.val();
+        const dot = document.getElementById("statusDot");
+
+        if (data && Array.isArray(data)) {
+          window.DB = data;
+          localStorage.setItem(window.DBKEY, JSON.stringify(window.DB));
+          if (typeof window.render === 'function') window.render(window.curTab);
+          if (dot) dot.style.background = "#2ecc71";
+        } else if (data === null) {
+          if (window.DB && window.DB.length > 0) {
+            window.cloudSave();
+          }
+          if (dot) dot.style.background = "#2ecc71";
+        }
+      }, (error) => {
+        const dot = document.getElementById("statusDot");
+        if (dot) dot.style.background = "#e74c3c";
+      });
+
+      dbLoad();
+      renderReg();
+      updBadge();
+      updIbar();
+    }
+  });
 
   // Cloud Save
   window.cloudSave = function() {
@@ -165,31 +253,25 @@ body{background:#F7F9F9;font-family:'Inter',sans-serif;color:#1A2B2B;height:100v
         if (dot) dot.style.background = "#e74c3c";
       });
   };
-
-  // Realtime Cloud Listener
-  onValue(dbRef, (snapshot) => {
-    const data = snapshot.val();
-    const dot = document.getElementById("statusDot");
-
-    if (data && Array.isArray(data)) {
-      window.DB = data;
-      localStorage.setItem(window.DBKEY, JSON.stringify(window.DB));
-      if (typeof window.render === 'function') window.render(window.curTab);
-      if (dot) dot.style.background = "#2ecc71";
-    } else if (data === null) {
-      if (window.DB && window.DB.length > 0) {
-        window.cloudSave();
-      }
-      if (dot) dot.style.background = "#2ecc71";
-    }
-  }, (error) => {
-    console.error("Database listener error:", error);
-    const dot = document.getElementById("statusDot");
-    if (dot) dot.style.background = "#e74c3c";
-  });
 </script>
 
 <script>
+function handleLogin() {
+  var u = document.getElementById("loginUser").value.trim();
+  var p = document.getElementById("loginPass").value;
+  if(!u || !p){
+    document.getElementById("loginErr").textContent = "Please enter username and password";
+    return;
+  }
+  window.fbLogin(u, p);
+}
+
+function handleLogout() {
+  if(window.confirm("Are you sure you want to logout?")){
+    window.fbLogout();
+  }
+}
+
 // ── DB ────────────────────────────────────────────────────────────────────────
 var DB=[], DBKEY="kp_v3";
 function dbLoad(){try{var d=localStorage.getItem(DBKEY);DB=d?JSON.parse(d):[];}catch(e){DB=[];}}
@@ -857,9 +939,6 @@ function doClean(){
   if(p!=="123456"){document.getElementById("aperr").textContent="Wrong password!";return;}
   DB=[];dbSave();closeModal();render(curTab);showToast("All data deleted.");
 }
-
-// ── INIT ──────────────────────────────────────────────────────────────────────
-dbLoad();renderReg();updBadge();updIbar();
 </script>
 </body>
 </html>
