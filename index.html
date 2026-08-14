@@ -175,6 +175,10 @@ body{background:#F7F9F9;font-family:'Inter',sans-serif;color:#1A2B2B;height:100v
 <script>/* Admin control credentials (webpage-level password) */
 var ADMIN_PWD = "SNCU@Admin#2026";
 </script>
+<script>/* Admin email (global, visible to all script blocks) */
+var KLPM_ADMIN_EMAIL = "admin.sncu@kit.internal";
+</script>
+
 <!-- FIREBASE AUTH & REALTIME DATABASE MODULE -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
@@ -227,7 +231,7 @@ var ADMIN_PWD = "SNCU@Admin#2026";
 
   // Auth State Listener - Smooth check without flashing login screen
   // Admin account email (only this Firebase account may delete records)
-  const KLPM_ADMIN_EMAIL = "admin.sncu@kit.internal"; window.KLPM_ADMIN_EMAIL = KLPM_ADMIN_EMAIL;
+  // (moved to global block for cross-scope visibility)
   onAuthStateChanged(auth, (user) => {
     // Expose signed-in email to page logic (for admin role checks)
     window._klpmUser = user ? user.email : null;
@@ -863,58 +867,78 @@ function showRptList(type){
 }
 function closeModal(){document.getElementById("modal").innerHTML="";document.getElementById("modal").classList.add("hide");}
 
-// ── PDF VIEW ──────────────────────────────────────────────────────────────────
-function viewPrintPDF(){
-  var tbl=document.getElementById("rptTable");if(!tbl){alert("No data");return;}
-  var htmlContent = '<!DOCTYPE html><html><head><meta charset="UTF-8"/><title>'+escH(_curRptTitle)+'</title>'+
-    '<style>body{font-family:Arial,sans-serif;margin:20px}h2{color:#0B6E6E;font-size:16px;margin-bottom:4px}.sub{font-size:11px;color:#666;margin-bottom:14px}table{width:100%;border-collapse:collapse;font-size:11px}th{background:#0B6E6E;color:#fff;padding:7px 6px;text-align:left}td{padding:6px;border-bottom:1px solid #ddd}tr:nth-child(even) td{background:#f8f8f8}.footer{margin-top:14px;font-size:10px;color:#888;text-align:right}@media print{.no-print{display:none}}</style>'+
-    '</head><body>'+
-    '<h2>Kuzhanthai Pettagam - SNCU DGL</h2>'+
-    '<div style="font-size:13px;font-weight:bold;color:#333;margin-bottom:4px">'+escH(_curRptTitle)+'</div>'+
-    '<div class="sub">Generated: '+fmtDate(today())+'</div>'+
-    tbl.outerHTML+
-    '<div class="footer">DGL Medical College Hospital &bull; SNCU</div>'+
-    '</body></html>';
-
-  var blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
-  var blobUrl = URL.createObjectURL(blob);
-  window.open(blobUrl, "_blank");
-}
-
-// ── DIRECT PDF DOWNLOAD ────────────────────────────────────────────────────────
+// ── DIRECT PDF DOWNLOAD (app-aware: AndroidBridge or blob anchor) ─────────────
 function downloadPDF(){
   var tbl = document.getElementById("pdfPrintContainer");
   if(!tbl){alert("No data");return;}
-  
   var element = document.createElement("div");
   element.style.padding = "10px";
-  element.innerHTML = '<h2 style="color:#0B6E6E;font-size:16px;margin-bottom:4px">Kuzhanthai Pettagam - SNCU DGL</h2>'+
-    '<div style="font-size:13px;font-weight:bold;color:#333;margin-bottom:4px">'+escH(_curRptTitle)+'</div>'+
-    '<div style="font-size:11px;color:#666;margin-bottom:12px">Generated: '+fmtDate(today())+'</div>'+
-    tbl.innerHTML+
+  element.innerHTML = '<h2 style="color:#0B6E6E;font-size:16px;margin-bottom:4px">Kuzhanthai Pettagam - SNCU DGL</h2>' +
+    '<div style="font-size:13px;font-weight:bold;color:#333;margin-bottom:4px">' + escH(_curRptTitle) + '</div>' +
+    '<div style="font-size:11px;color:#666;margin-bottom:12px">Generated: ' + fmtDate(today()) + '</div>' +
+    tbl.innerHTML +
     '<div style="margin-top:14px;font-size:10px;color:#888;text-align:right">DGL Medical College Hospital &bull; SNCU</div>';
-
   var opt = {
     margin:       [10, 10, 10, 10],
-    filename:     'KP_'+_curRptTitle.replace(/[^a-zA-Z0-9]/g,"_")+'_'+today()+'.pdf',
+    filename:     'KP_' + _curRptTitle.replace(/[^a-zA-Z0-9]/g, "_") + '_' + today() + '.pdf',
     image:        { type: 'jpeg', quality: 0.98 },
     html2canvas:  { scale: 2 },
     jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
   };
-
-  showToast("Generating PDF download...", "ok");
-  html2pdf().set(opt).from(element).save();
+  if(typeof window.AndroidBridge !== 'undefined'){
+    // App path: convert to base64 and hand to the native bridge (no blob anchor)
+    showToast("Saving PDF...", "ok");
+    html2pdf().set(opt).from(element).toPdf().get('pdf').then(function(pdf){
+      var du = pdf.output('datauristring');
+      window.AndroidBridge.saveFile(opt.filename, du.split(',')[1] || du, 'application/pdf');
+    }).catch(function(e){ showToast("PDF failed: " + e, "err"); });
+  } else {
+    // Browser path: original blob anchor download
+    html2pdf().set(opt).from(element).save();
+  }
 }
-
-// ── CSV ───────────────────────────────────────────────────────────────────────
+// ── CSV (app-aware: AndroidBridge or blob anchor) ─────────────────────────────
 function doCSV(title){
   var tbl=document.getElementById("rptTable");if(!tbl){alert("No data");return;}
   var rows=Array.from(tbl.querySelectorAll("tr"));
-  var csv=rows.map(function(r){return Array.from(r.querySelectorAll("th,td")).map(function(c){return'"'+c.innerText.replace(/"/g,'""')+'"';}).join(",");}).join("\r\n");
-  var blob=new Blob(["\uFEFF"+csv],{type:"text/csv;charset=utf-8"});
-  var a=document.createElement("a");a.href=URL.createObjectURL(blob);
-  a.download="KP_"+title.replace(/[^a-zA-Z0-9]/g,"_")+"_"+today()+".csv";
-  document.body.appendChild(a);a.click();document.body.removeChild(a);
+  var csv=rows.map(function(r){return Array.from(r.querySelectorAll("th,td")).map(function(c){return '"' + c.innerText.replace(/"/g, '""') + '"';}).join(",");}).join("\r\n");
+  var fname="KP_" + title.replace(/[^a-zA-Z0-9]/g, "_") + "_" + today() + ".csv";
+  if(typeof window.AndroidBridge !== 'undefined'){
+    var bytes = new TextEncoder().encode("\uFEFF" + csv);
+    var b64 = btoa(String.fromCharCode.apply(null, Array.from(bytes)));
+    showToast("Saving CSV...", "ok");
+    window.AndroidBridge.saveFile(fname, b64, 'text/csv');
+  } else {
+    var blob=new Blob(["\uFEFF" + csv],{type:"text/csv;charset=utf-8"});
+    var a=document.createElement("a");a.href=URL.createObjectURL(blob);
+    a.download=fname;
+    document.body.appendChild(a);a.click();document.body.removeChild(a);
+  }
+}
+// ── VIEW PDF (app-aware: native viewer or new tab) ────────────────────────────
+function viewPrintPDF(){
+  var tbl=document.getElementById("rptTable");if(!tbl){alert("No data");return;}
+  var htmlContent = '<!DOCTYPE html><html><head><meta charset="UTF-8"/><title>' + escH(_curRptTitle) + '</title>' +
+    '<style>body{font-family:Arial,sans-serif;margin:20px}h2{color:#0B6E6E;font-size:16px;margin-bottom:4px}.sub{font-size:11px;color:#666;margin-bottom:14px}table{width:100%;border-collapse:collapse;font-size:11px}th{background:#0B6E6E;color:#fff;padding:7px 6px;text-align:left}td{padding:6px;border-bottom:1px solid #ddd}tr:nth-child(even) td{background:#f8f8f8}.footer{margin-top:14px;font-size:10px;color:#888;text-align:right}@media print{.no-print{display:none}}</style>' +
+    '</head><body>' +
+    '<h2>Kuzhanthai Pettagam - SNCU DGL</h2>' +
+    '<div style="font-size:13px;font-weight:bold;color:#333;margin-bottom:4px">' + escH(_curRptTitle) + '</div>' +
+    '<div class="sub">Generated: ' + fmtDate(today()) + '</div>' +
+    tbl.outerHTML +
+    '<div class="footer">DGL Medical College Hospital &bull; SNCU</div>' +
+    '</body></html>';
+  if(typeof window.AndroidBridge !== 'undefined'){
+    // App path: save HTML file natively and open it in the native viewer
+    var fname = 'KP_' + _curRptTitle.replace(/[^a-zA-Z0-9]/g, "_") + '_' + today() + '.html';
+    var b64 = btoa(unescape(encodeURIComponent(htmlContent)));
+    showToast("Opening report...", "ok");
+    window.AndroidBridge.saveFile(fname, b64, 'text/html');
+  } else {
+    // Browser path: original new-tab HTML report
+    var blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
+    var blobUrl = URL.createObjectURL(blob);
+    window.open(blobUrl, "_blank");
+  }
 }
 
 // ── ADMIN ─────────────────────────────────────────────────────────────────────
