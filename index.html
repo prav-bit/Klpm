@@ -872,6 +872,28 @@ function showRptList(type){
   var m=document.getElementById("modal");m.innerHTML=html;m.classList.remove("hide");
 }
 function closeModal(){document.getElementById("modal").innerHTML="";document.getElementById("modal").classList.add("hide");}
+// ── IN-APP REPORT PREVIEW (full-screen overlay, closes on tap anywhere or Close button) ───
+var _klpmPrevEl=null, _klpmPrevIframe=null;
+function klpmShowRptPreview(title, htmlContent){
+  if(_klpmPrevEl){document.body.removeChild(_klpmPrevEl);_klpmPrevEl=null;}
+  var wrap=document.createElement("div");
+  wrap.style.cssText="position:fixed;top:0;left:0;right:0;bottom:0;background:#E6F4F4;z-index:99999;display:flex;flex-direction:column;";
+  var bar=document.createElement("div");
+  bar.style.cssText="background:#0B6E6E;color:#fff;padding:12px 16px 12px 12px;display:flex;align-items:center;justify-content:space-between;gap:8px;box-shadow:0 1px 4px rgba(0,0,0,.25);";
+  bar.innerHTML='<div style="font-size:14px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' +
+    '<span style="opacity:.7;font-size:11px;font-weight:400">Report&nbsp;&bull;&nbsp;</span>' + escH(title) + '</div>' +
+    '<button id="klpmPrevClose" style="background:#fff;color:#0B6E6E;border:none;border-radius:999px;width:34px;height:34px;font-size:18px;font-weight:700;cursor:pointer;flex-shrink:0">\u00d7</button>';
+  var fr=document.createElement("iframe");
+  fr.style.cssText="flex:1;width:100%;border:none;background:#fff;";
+  fr.srcdoc=htmlContent;
+  wrap.appendChild(bar);wrap.appendChild(fr);
+  document.body.appendChild(wrap);
+  _klpmPrevEl=wrap;_klpmPrevIframe=fr;
+  var close=function(){if(_klpmPrevEl&&_klpmPrevEl.parentNode){document.body.removeChild(_klpmPrevEl);}
+    _klpmPrevEl=null;_klpmPrevIframe=null;};
+  bar.querySelector("#klpmPrevClose").addEventListener("click",function(ev){ev.stopPropagation();close();});
+  wrap.addEventListener("click",function(ev){if(ev.target===wrap){close();}});
+}
 
 // ── DIRECT PDF DOWNLOAD (app-aware: AndroidBridge or blob anchor) ─────────────
 function downloadPDF(){
@@ -934,11 +956,9 @@ function viewPrintPDF(){
     '<div class="footer">DGL Medical College Hospital &bull; SNCU</div>' +
     '</body></html>';
   if(typeof window.AndroidBridge !== 'undefined'){
-    // App path: save HTML file natively and open it in the native viewer
-    var fname = 'KP_' + _curRptTitle.replace(/[^a-zA-Z0-9]/g, "_") + '_' + today() + '.html';
-    var b64 = btoa(unescape(encodeURIComponent(htmlContent)));
+    // App path: render the report INSIDE the app as a full-screen preview (no file saved, no chooser)
     showToast("Opening report...", "ok");
-    window.AndroidBridge.saveFile(fname, b64, 'text/html');
+    klpmShowRptPreview(escH(_curRptTitle), htmlContent);
   } else {
     // Browser path: original new-tab HTML report
     var blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
