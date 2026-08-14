@@ -227,7 +227,7 @@ var ADMIN_PWD = "SNCU@Admin#2026";
 
   // Auth State Listener - Smooth check without flashing login screen
   // Admin account email (only this Firebase account may delete records)
-  const KLPM_ADMIN_EMAIL = "admin.sncu@kit.internal";
+  const KLPM_ADMIN_EMAIL = "admin.sncu@kit.internal"; window.KLPM_ADMIN_EMAIL = KLPM_ADMIN_EMAIL;
   onAuthStateChanged(auth, (user) => {
     // Expose signed-in email to page logic (for admin role checks)
     window._klpmUser = user ? user.email : null;
