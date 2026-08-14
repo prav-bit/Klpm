@@ -172,6 +172,9 @@ body{background:#F7F9F9;font-family:'Inter',sans-serif;color:#1A2B2B;height:100v
 </div>
 <div id="modal" class="hide"></div>
 
+<script>/* Admin control credentials (webpage-level password) */
+var ADMIN_PWD = "SNCU@Admin#2026";
+</script>
 <!-- FIREBASE AUTH & REALTIME DATABASE MODULE -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
@@ -223,7 +226,11 @@ body{background:#F7F9F9;font-family:'Inter',sans-serif;color:#1A2B2B;height:100v
   };
 
   // Auth State Listener - Smooth check without flashing login screen
+  // Admin account email (only this Firebase account may delete records)
+  const KLPM_ADMIN_EMAIL = "admin.sncu@kit.internal";
   onAuthStateChanged(auth, (user) => {
+    // Expose signed-in email to page logic (for admin role checks)
+    window._klpmUser = user ? user.email : null;
     const loginScreen = document.getElementById("loginScreen");
     const appScreen = document.getElementById("app");
 
@@ -917,6 +924,9 @@ function openAdmin(){
   html+='<div class="mhdl"></div>';
   html+='<div style="display:flex;justify-content:space-between;margin-bottom:14px"><div style="font-size:15px;font-weight:700">Admin Settings</div><button onclick="closeModal()" style="background:none;border:none;font-size:20px;cursor:pointer;color:#5A7070">&times;</button></div>';
   html+='<div style="background:#E0F4F4;border-radius:9px;padding:12px;text-align:center;margin-bottom:12px"><div style="font-size:24px;font-weight:700;color:#0B6E6E">'+DB.length+'</div><div style="font-size:11px;color:#5A7070">Babies registered</div></div>';
+  var _isKlpmAdmin = !!(window._klpmUser && window._klpmUser.toLowerCase() === KLPM_ADMIN_EMAIL.toLowerCase());
+  html+='<div style="font-size:11px;color:#5A7070;margin-bottom:10px">Signed in as: '+(window._klpmUser||"?")+'</div>';
+  if(_isKlpmAdmin){
   html+='<div style="background:#FEF9E7;border:1.5px solid #D4A017;border-radius:9px;padding:12px;margin-bottom:12px">'+
     '<div style="font-size:13px;font-weight:700;color:#D4A017;margin-bottom:8px">Delete Specific Entry</div>'+
     '<input class="inp" id="adminSrch" placeholder="Search DEIC / Phone / Name / Reg Date" oninput="adminSearch(this.value)" style="margin-bottom:8px"/>'+
@@ -925,6 +935,11 @@ function openAdmin(){
     '<div style="font-size:13px;font-weight:700;color:#C0392B;margin-bottom:6px">Delete All Data</div>'+
     '<div style="font-size:12px;color:#5A7070;margin-bottom:10px">Permanently deletes all records. Cannot be undone.</div>'+
     '<button class="btn btn-red" onclick="adminStep2()">Delete All Data</button></div>';
+  }else{
+  html+='<div style="background:#E8F8F8;border:1.5px solid #0B6E6E;border-radius:9px;padding:12px;margin-bottom:12px;text-align:center">'+
+    '<div style="font-size:12px;font-weight:700;color:#0B6E6E;margin-bottom:4px">Staff View Only</div>'+
+    '<div style="font-size:11px;color:#5A7070">Deleting records requires the admin account.<br/>Please sign out and log in as the admin to manage records.</div></div>';
+  }
   html+='<button class="btn btn-out" onclick="closeModal()">Close</button>';
   html+='</div></div>';
   var m=document.getElementById("modal");m.innerHTML=html;m.classList.remove("hide");
@@ -944,10 +959,11 @@ function adminSearch(q){
   }).join("");
 }
 function adminDelEntry(idx){
+  if(!window._klpmUser||window._klpmUser.toLowerCase()!==KLPM_ADMIN_EMAIL.toLowerCase()){alert("Only the admin account can delete entries.");return;}
   var n=_adminFound[idx];if(!n)return;
   if(!window.confirm("Delete entry for "+n.name+"?\nThis cannot be undone."))return;
   var pwd=window.prompt("Enter admin password:");
-  if(pwd!=="123456"){alert("Wrong password!");return;}
+  if(pwd!==ADMIN_PWD){alert("Wrong password!");return;}
   DB=DB.filter(function(x){return x.id!==n.id;});
   dbSave();updBadge();updIbar();showToast("Entry for "+n.name+" deleted.");
   var q=document.getElementById("adminSrch");if(q)adminSearch(q.value);
@@ -966,15 +982,20 @@ function adminStep3(){
     '<div style="text-align:center;margin-bottom:16px"><div style="font-size:32px">&#128272;</div>'+
     '<div style="font-size:14px;font-weight:700;margin:8px 0">Enter Admin Password</div>'+
     '<div style="font-size:11px;color:#5A7070">Enter password to confirm deletion</div></div>'+
-    '<div class="fld"><input class="inp" type="password" id="apwd" placeholder="Password" maxlength="10" style="text-align:center;font-size:18px;letter-spacing:5px"/>'+
+    '<div class="fld"><input class="inp" type="password" id="apwd" placeholder="Admin Password" maxlength="16" style="text-align:center;font-size:18px;letter-spacing:2px;margin-bottom:10px"/>'+
+    '<div style="font-size:11px;color:#5A7070;margin-bottom:6px">To confirm, type the number of records ('+DB.length+') below</div>'+
+    '<div class="fld"><input class="inp" id="confirmCount" type="number" placeholder="Number of records (e.g. '+DB.length+')" style="text-align:center;font-size:16px"/>'+
     '<div id="aperr" style="color:#C0392B;font-size:11px;text-align:center;margin-top:4px"></div></div>'+
     '<div style="display:flex;gap:8px"><button class="btn btn-out" style="flex:1" onclick="openAdmin()">Cancel</button>'+
     '<button class="btn btn-red" style="flex:1" onclick="doClean()">Delete All</button></div></div></div>';
   var m=document.getElementById("modal");m.innerHTML=html;m.classList.remove("hide");
 }
 function doClean(){
+  if(!window._klpmUser||window._klpmUser.toLowerCase()!==KLPM_ADMIN_EMAIL.toLowerCase()){alert("Only the admin account can delete all data.");return;}
   var p=document.getElementById("apwd").value;
-  if(p!=="123456"){document.getElementById("aperr").textContent="Wrong password!";return;}
+  if(p!==ADMIN_PWD){document.getElementById("aperr").textContent="Wrong password!";return;}
+  var tc=document.getElementById("confirmCount");
+  if(tc&&tc.value.trim()!==String(DB.length)){document.getElementById("aperr").textContent="Type the exact count ("+DB.length+") to confirm.";return;}
   DB=[];dbSave();closeModal();render(curTab);showToast("All data deleted.");
 }
 </script>
