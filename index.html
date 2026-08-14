@@ -251,6 +251,7 @@ var KLPM_ADMIN_EMAIL = "admin.sncu@kit.internal";
         if (data && Array.isArray(data)) {
           window.DB = data;
           localStorage.setItem(window.DBKEY, JSON.stringify(window.DB));
+          try { if(window.AndroidBridge&&typeof AndroidBridge.saveSmsSnapshot==="function") AndroidBridge.saveSmsSnapshot(JSON.stringify(window.DB)); } catch(e) {}
           if (typeof window.render === 'function') window.render(window.curTab);
           if (dot) dot.style.background = "#2ecc71";
         } else if (data === null) {
@@ -279,7 +280,8 @@ var KLPM_ADMIN_EMAIL = "admin.sncu@kit.internal";
   // Cloud Save
   window.cloudSave = function() {
     set(dbRef, window.DB || [])
-      .then(() => console.log("Synced to Firebase Cloud!"))
+      .then(() => { console.log("Synced to Firebase Cloud!");
+        try { if(window.AndroidBridge&&typeof AndroidBridge.saveSmsSnapshot==="function") AndroidBridge.saveSmsSnapshot(JSON.stringify(window.DB||[])); } catch(e) {} })
       .catch((err) => {
         console.error("Firebase sync error: ", err);
         const dot = document.getElementById("statusDot");
@@ -672,6 +674,10 @@ function pcHTML(n){
   else if(nfu&&diffDays(nfu,td)>0)bdg='<span class="bdg bg-red">Overdue</span>';
   else if(nfu&&dl>=0&&dl<=3)bdg='<span class="bdg bg-orange">'+(dl===0?"Today":dl+"d")+'</span>';
   else bdg='<span class="bdg bg-teal">Kit '+kc+'/12</span>';
+  var _smsSt=window.KLPM_SMS_STATUS||{};
+  if(_smsSt[n.id]){
+    bdg+='<span style="margin-left:6px;font-size:15px;font-weight:700;color:'+(_smsSt[n.id]==="s"?"#1A7A4A":"#C0392B")+'">'+(_smsSt[n.id]==="s"?"\u2713":"\u2717")+'</span>';
+  }
   return '<div class="pc" onclick="openPt(\''+n.id+'\')">'+
     '<div class="prow"><div>'+
     '<div class="pname">'+escH(n.name)+'</div>'+
@@ -928,21 +934,11 @@ function viewPrintPDF(){
     '<div class="footer">DGL Medical College Hospital &bull; SNCU</div>' +
     '</body></html>';
   if(typeof window.AndroidBridge !== 'undefined'){
-    // App path: preview the report inside the app (full-screen overlay)
-    var prev=document.getElementById("rptPrev");
-    if(!prev){
-      prev=document.createElement("div");prev.id="rptPrev";
-      prev.style.cssText="position:fixed;inset:0;background:#fff;z-index:9999;display:flex;flex-direction:column;";
-      prev.innerHTML='<div style="flex:1;overflow:auto;padding:8px" id="rptPrevBody"></div>'+
-        '<div style="padding:8px;border-top:1px solid #ddd;display:flex;gap:8px" class="no-print">'+
-        '<button class="btn btn-out" style="flex:1" onclick="closeRptPrev()">Close Preview</button></div>';
-      document.body.appendChild(prev);
-    }
-    document.getElementById("rptPrevBody").innerHTML=tbl.outerHTML;
-    prev.style.display="flex";
-    window.closeRptPrev=function(){var p=document.getElementById("rptPrev");if(p)p.style.display="none";};
-    showToast("Report preview open", "ok");
-    return;
+    // App path: save HTML file natively and open it in the native viewer
+    var fname = 'KP_' + _curRptTitle.replace(/[^a-zA-Z0-9]/g, "_") + '_' + today() + '.html';
+    var b64 = btoa(unescape(encodeURIComponent(htmlContent)));
+    showToast("Opening report...", "ok");
+    window.AndroidBridge.saveFile(fname, b64, 'text/html');
   } else {
     // Browser path: original new-tab HTML report
     var blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
@@ -956,7 +952,10 @@ var _adminFound=[];
 function openAdmin(){
   var html='<div class="ovl" onclick="closeModal()"><div class="mdl" onclick="event.stopPropagation()" style="max-height:90vh;overflow-y:auto">';
   html+='<div class="mhdl"></div>';
-  html+='<div style="display:flex;justify-content:space-between;margin-bottom:14px"><div style="font-size:15px;font-weight:700">Admin Settings</div><button onclick="closeModal()" style="background:none;border:none;font-size:20px;cursor:pointer;color:#5A7070">&times;</button></div>';
+  var _smsDev=window.AndroidBridge&&typeof AndroidBridge.sendRemindersNow==="function";
+  html+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px"><div style="font-size:15px;font-weight:700">Admin Settings</div>'+
+  (_smsDev?'<button onclick="klpmSendNow()" style="background:#0B6E6E;border:none;color:#fff;border-radius:6px;padding:6px 12px;font-size:12px;font-weight:700;cursor:pointer">Send reminders now</button>':'')+
+  '<button onclick="closeModal()" style="background:none;border:none;font-size:20px;cursor:pointer;color:#5A7070">&times;</button></div>';
   html+='<div style="background:#E0F4F4;border-radius:9px;padding:12px;text-align:center;margin-bottom:12px"><div style="font-size:24px;font-weight:700;color:#0B6E6E">'+DB.length+'</div><div style="font-size:11px;color:#5A7070">Babies registered</div></div>';
   var _isKlpmAdmin = !!(window._klpmUser && window._klpmUser.toLowerCase() === KLPM_ADMIN_EMAIL.toLowerCase());
   html+='<div style="font-size:11px;color:#5A7070;margin-bottom:10px">Signed in as: '+(window._klpmUser||"?")+'</div>';
@@ -964,13 +963,7 @@ function openAdmin(){
   html+='<div style="background:#FEF9E7;border:1.5px solid #D4A017;border-radius:9px;padding:12px;margin-bottom:12px">'+
     '<div style="font-size:13px;font-weight:700;color:#D4A017;margin-bottom:8px">Delete Specific Entry</div>'+
     '<input class="inp" id="adminSrch" placeholder="Search DEIC / Phone / Name / Reg Date" oninput="adminSearch(this.value)" style="margin-bottom:8px"/>'+
-    '<div id="adminSearchRes"></div>'+
-    '<div id="delConfirmSec" style="display:none;margin-top:10px;background:#fff;border:1.5px solid #C0392B;border-radius:9px;padding:10px">'+
-    '<div style="font-size:12px;font-weight:700;color:#C0392B;margin-bottom:6px">Confirm delete: <span id="delTargetName"></span></div>'+
-    '<input class="inp" id="delPwd" type="password" placeholder="Enter admin password" maxlength="16" style="margin-bottom:6px"/>'+
-    '<div id="delPwdErr" style="color:#C0392B;font-size:11px;margin-bottom:6px"></div>'+
-    '<div style="display:flex;gap:8px"><button class="btn btn-out" style="flex:1" onclick="cancelDelEntry()">Cancel</button>'+
-    '<button class="btn btn-red" style="flex:1" onclick="confirmDelEntry()">Delete</button></div></div></div>';
+    '<div id="adminSearchRes"></div></div>';
   html+='<div style="background:#FDECEA;border:1.5px solid #C0392B;border-radius:9px;padding:12px;margin-bottom:12px">'+
     '<div style="font-size:13px;font-weight:700;color:#C0392B;margin-bottom:6px">Delete All Data</div>'+
     '<div style="font-size:12px;color:#5A7070;margin-bottom:10px">Permanently deletes all records. Cannot be undone.</div>'+
@@ -998,29 +991,14 @@ function adminSearch(q){
       '<button class="del-entry-btn" onclick="adminDelEntry('+i+')">Delete</button></div>';
   }).join("");
 }
-var _delPending=null;
 function adminDelEntry(idx){
   if(!window._klpmUser||window._klpmUser.toLowerCase()!==KLPM_ADMIN_EMAIL.toLowerCase()){alert("Only the admin account can delete entries.");return;}
   var n=_adminFound[idx];if(!n)return;
-  _delPending={idx:idx,name:n.name,id:n.id};
-  var sec=document.getElementById("delConfirmSec");
-  if(sec){
-    document.getElementById("delTargetName").textContent=n.name;
-    document.getElementById("delPwd").value="";
-    sec.style.display="block";
-    document.getElementById("delPwd").focus();
-  }
-}
-function cancelDelEntry(){var sec=document.getElementById("delConfirmSec");if(sec){sec.style.display="none";_delPending=null;}}
-function confirmDelEntry(){
-  if(!_delPending)return;
-  var pwd=document.getElementById("delPwd").value;
-  var err=document.getElementById("delPwdErr");
-  if(pwd!==ADMIN_PWD){err.textContent="Wrong password!";return;}
-  var n={id:_delPending.id,name:_delPending.name};
+  if(!window.confirm("Delete entry for "+n.name+"?\nThis cannot be undone."))return;
+  var pwd=window.prompt("Enter admin password:");
+  if(pwd!==ADMIN_PWD){alert("Wrong password!");return;}
   DB=DB.filter(function(x){return x.id!==n.id;});
   dbSave();updBadge();updIbar();showToast("Entry for "+n.name+" deleted.");
-  openAdmin();
   var q=document.getElementById("adminSrch");if(q)adminSearch(q.value);
 }
 function adminStep2(){
@@ -1053,6 +1031,33 @@ function doClean(){
   if(tc&&tc.value.trim()!==String(DB.length)){document.getElementById("aperr").textContent="Type the exact count ("+DB.length+") to confirm.";return;}
   DB=[];dbSave();closeModal();render(curTab);showToast("All data deleted.");
 }
+
+// ── SMS REMINDERS (APK BRIDGE) ─────────────────────────────────────────────
+function klpmSendNow(){
+  try{
+    showToast("Sending reminders...","ok");
+    AndroidBridge.sendRemindersNow(function(json){
+      try{ klpmApplySms(json); }catch(e){ showToast("Reminders done","ok"); }
+    });
+  }catch(e){ showToast("SMS not available in this browser","err"); }
+}
+function klpmApplySms(json){
+  try{
+    var st=JSON.parse(json);
+    window.KLPM_SMS_STATUS=st&&st.status?st.status:{};
+    var total=(st.sent||0)+" sent, "+(st.failed||0)+" failed";
+    if(total!=="0 sent, 0 failed") showToast("Reminders: "+total,(st.failed&&st.failed>0)?"err":"ok");
+    // refresh current tab so Defaulters ticks appear
+    if(typeof render==="function"&&window.curTab) render(window.curTab);
+  }catch(e){}
+}
+(function(){
+  try{
+    if(window.AndroidBridge&&typeof AndroidBridge.getSmsStatus==="function"){
+      AndroidBridge.getSmsStatus(function(json){ try{ klpmApplySms(json); }catch(e){} });
+    }
+  }catch(e){}
+})();
 </script>
 </body>
 </html>
