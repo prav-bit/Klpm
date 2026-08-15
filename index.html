@@ -1004,8 +1004,8 @@ function openAdmin(){
   var _isKlpmAdmin = !!(window._klpmUser && window._klpmUser.toLowerCase() === KLPM_ADMIN_EMAIL.toLowerCase());
   html+='<div style="font-size:11px;color:#5A7070;margin-bottom:10px">Signed in as: '+(window._klpmUser||"?")+'</div>';
   if(window.AndroidBridge&&typeof AndroidBridge.getAutoRunNote==="function"){
-    html+='<div id="klpmAutoRunNote" style="background:#EDF7F3;border:1.5px solid #7CB9A8;border-radius:9px;padding:10px;margin-bottom:12px;font-size:11px;color:#0B6E6E">Checking auto reminders...</div>';
-    try{ AndroidBridge.getAutoRunNote(function(n){ try{ var el=document.getElementById("klpmAutoRunNote"); if(el&&n&&n!=="no_auto_run_yet"){ el.textContent=n; el.style.display="block"; } else if(el){ el.style.display="none"; } }catch(e){} }); }catch(e){}
+    html+='<div id="klpmAutoRunNote" style="display:none;background:#EDF7F3;border:1.5px solid #7CB9A8;border-radius:9px;padding:10px;margin-bottom:12px;font-size:11px;color:#0B6E6E"></div>';
+    try{ AndroidBridge.getAutoRunNote(function(n){ try{ var el=document.getElementById("klpmAutoRunNote"); if(el&&n&&n!=="no_auto_run_yet"){ el.textContent=n; el.style.display="block"; } }catch(e){} }); }catch(e){}
   }
   if(_isKlpmAdmin){
   html+='<div style="background:#FEF9E7;border:1.5px solid #D4A017;border-radius:9px;padding:12px;margin-bottom:12px">'+
