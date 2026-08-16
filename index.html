@@ -360,13 +360,13 @@ function escH(s){if(!s)return "";return String(s).replace(/&/g,"&amp;").replace(
 function doCall(ph){window.location.href="tel:"+ph;}
 function defClass(exp){
   var d=diffDays(exp,today());
-  if(d<30)return null;if(d<60)return "1M Default";if(d<90)return "2M Default";return "3M+ Default";
+  if(d<=30)return null;if(d<=60)return "1M Default";if(d<=90)return "2M Default";return "3M+ Default";
 }
 function getDefaulters(){
   return DB.filter(function(n){
     if(n.status==="dead"||n.status==="migrated"||n.completed)return false;
     if(!n.visits||!n.visits.length)return false;
-    var nfu=nextFU(n.visits);return nfu&&diffDays(nfu,today())>=30;
+    var nfu=nextFU(n.visits);return nfu&&diffDays(nfu,today())>30;
   });
 }
 
@@ -690,8 +690,23 @@ function pcHTML(n){
   else if(nfu&&dl>=0&&dl<=3)bdg='<span class="bdg bg-orange">'+(dl===0?"Today":dl+"d")+'</span>';
   else bdg='<span class="bdg bg-teal">Kit '+kc+'/12</span>';
   var _smsSt=window.KLPM_SMS_STATUS||{};
-  if(_smsSt[n.id]){
-    bdg+='<span style="margin-left:6px;font-size:15px;font-weight:700;color:'+(_smsSt[n.id]==="s"?"#1A7A4A":"#C0392B")+'">'+(_smsSt[n.id]==="s"?"\u2713":"\u2717")+'</span>';
+  var _smsRaw=_smsSt[n.id];
+  var _smsEvents=Array.isArray(_smsRaw)?_smsRaw:(_smsRaw?[_smsRaw]:[]);
+  // A due-message tick is shown only while the child is still due. Overdue
+  // reminders then accumulate one tick each on days 5, 10, 15, 20, 25 and 30.
+  // After day 30 the record moves to Defaulters and is followed up by phone.
+  var _isOverdue=nfu&&diffDays(nfu,td)>0;
+  var _overdueDays=_isOverdue?diffDays(nfu,td):0;
+  _smsEvents=_smsEvents.filter(function(ev){
+    if(typeof ev==="string")return true;
+    if(!ev)return false;
+    if(ev.cycle&&ev.cycle!==nfu)return false;
+    if(ev.kind==="due")return !_isOverdue;
+    if(ev.kind==="overdue")return _isOverdue&&_overdueDays<=30;
+    return true;
+  });
+  if(_smsEvents.length){
+    bdg+='<span aria-label="Automatic SMS results" style="margin-left:6px;font-size:15px;font-weight:700;white-space:nowrap">'+_smsEvents.map(function(ev){var _s=typeof ev==="string"?ev:ev.state;return '<span style="color:'+(_s==="s"||_s==="sent"?"#1A7A4A":"#C0392B")+'">'+(_s==="s"||_s==="sent"?"\u2713":"\u2717")+'</span>';}).join("")+'</span>';
   }
   return '<div class="pc" onclick="openPt(\''+n.id+'\')">'+
     '<div class="prow"><div>'+
@@ -1177,7 +1192,8 @@ function klpmApplySms(json){
 (function(){
   try{
     if(window.AndroidBridge&&typeof AndroidBridge.getSmsStatus==="function"){
-      AndroidBridge.getSmsStatus(function(json){ try{ klpmApplySms(json); }catch(e){} });
+      var __k=__klpmRegCb(function(json){ try{ klpmApplySms(json); }catch(e){} });
+      AndroidBridge.getSmsStatus(__k);
     }
   }catch(e){}
 })();
