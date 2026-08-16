@@ -693,8 +693,9 @@ function pcHTML(n){
   var _smsRaw=_smsSt[n.id];
   var _smsEvents=Array.isArray(_smsRaw)?_smsRaw:(_smsRaw?[_smsRaw]:[]);
   // A due-message tick is shown only while the child is still due. Overdue
-  // reminders then accumulate one tick each on days 5, 10, 15, 20, 25 and 30.
-  // After day 30 the record moves to Defaulters and is followed up by phone.
+  // reminders are displayed as one tick plus a compact count on days 5, 10,
+  // 15, 20, 25 and 30. After day 30 the record moves to Defaulters and is
+  // followed up by phone.
   var _isOverdue=nfu&&diffDays(nfu,td)>0;
   var _overdueDays=_isOverdue?diffDays(nfu,td):0;
   _smsEvents=_smsEvents.filter(function(ev){
@@ -706,7 +707,11 @@ function pcHTML(n){
     return true;
   });
   if(_smsEvents.length){
-    bdg+='<span aria-label="Automatic SMS results" style="margin-left:6px;font-size:15px;font-weight:700;white-space:nowrap">'+_smsEvents.map(function(ev){var _s=typeof ev==="string"?ev:ev.state;return '<span style="color:'+(_s==="s"||_s==="sent"?"#1A7A4A":"#C0392B")+'">'+(_s==="s"||_s==="sent"?"\u2713":"\u2717")+'</span>';}).join("")+'</span>';
+    var _sentCount=_smsEvents.filter(function(ev){var _s=typeof ev==="string"?ev:ev.state;return _s==="s"||_s==="sent";}).length;
+    var _failedCount=_smsEvents.length-_sentCount;
+    var _ok=_sentCount>0;
+    var _count=_ok?_sentCount:_failedCount;
+    bdg+='<span aria-label="Automatic SMS result count" style="margin-left:6px;font-size:15px;font-weight:700;white-space:nowrap;color:'+(_ok?"#1A7A4A":"#C0392B")+'">'+(_ok?"\u2713":"\u2717")+(_count>1?" "+_count:"")+'</span>';
   }
   return '<div class="pc" onclick="openPt(\''+n.id+'\')">'+
     '<div class="prow"><div>'+
