@@ -223,10 +223,22 @@ var KLPM_ADMIN_EMAIL = "admin.sncu@kit.internal";
   window.fbLogout = function() {
     signOut(auth).then(() => {
       if(dbUnsubscribe) dbUnsubscribe();
+      // v31: true logout — wipe everything the page stored, so a reinstall
+      // or reopen can never auto-login from leftover browser data.
+      try { localStorage.clear(); } catch(e) {}
+      try { sessionStorage.clear(); } catch(e) {}
+      try {
+        if(window.AndroidBridge && typeof AndroidBridge.wipeSession==="function"){ AndroidBridge.wipeSession(); }
+      } catch(e) {}
+      window._klpmUser = null;
+      window.DB = [];
+      window.KLPM_SMS_STATUS = null;
       document.getElementById("app").classList.add("hide");
       const loginScreen = document.getElementById("loginScreen");
       loginScreen.style.display = "flex";
       loginScreen.classList.remove("hide");
+    }).catch((e) => {
+      document.getElementById("loginErr").textContent = "Logout failed — please try again.";
     });
   };
 
