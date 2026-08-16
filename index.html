@@ -1011,9 +1011,8 @@ var _adminFound=[];
 function openAdmin(){
   var html='<div class="ovl" onclick="closeModal()"><div class="mdl" onclick="event.stopPropagation()" style="max-height:90vh;overflow-y:auto">';
   html+='<div class="mhdl"></div>';
-  var _smsDev=window.AndroidBridge&&typeof AndroidBridge.sendRemindersNow==="function";window.__klpmCbs=window.__klpmCbs||{};function __klpmRegCb(fn){var k='cb'+Object.keys(window.__klpmCbs).length+'x'+Date.now();window.__klpmCbs[k]=fn;return k;}
+  window.__klpmCbs=window.__klpmCbs||{};function __klpmRegCb(fn){var k='cb'+Object.keys(window.__klpmCbs).length+'x'+Date.now();window.__klpmCbs[k]=fn;return k;}
   html+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px"><div style="font-size:15px;font-weight:700">Admin Settings</div>'+
-  (_smsDev?'<button onclick="klpmSendNow()" style="background:#0B6E6E;border:none;color:#fff;border-radius:6px;padding:6px 12px;font-size:12px;font-weight:700;cursor:pointer">Send reminders now</button>':'')+
   '<button onclick="closeModal()" style="background:none;border:none;font-size:20px;cursor:pointer;color:#5A7070">&times;</button></div>';
   html+='<div style="background:#E0F4F4;border-radius:9px;padding:12px;text-align:center;margin-bottom:12px"><div style="font-size:24px;font-weight:700;color:#0B6E6E">'+DB.length+'</div><div style="font-size:11px;color:#5A7070">Babies registered</div></div>';
   html+='<div id="klpmSmsPermBox" style="display:none;justify-content:space-between;align-items:center;background:#F1F9F9;border:1.5px solid #C8E6E6;border-radius:9px;padding:10px 12px;margin-bottom:12px"></div>';
