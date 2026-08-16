@@ -200,6 +200,7 @@ var KLPM_ADMIN_EMAIL = "admin.sncu@kit.internal";
   const auth = getAuth(app);
   const db = getDatabase(app);
   const dbRef = ref(db, 'kp_records');
+  const pubRef = ref(db, 'sms_data_public');
 
   let dbUnsubscribe = null;
 
@@ -252,6 +253,7 @@ var KLPM_ADMIN_EMAIL = "admin.sncu@kit.internal";
           window.DB = data;
           localStorage.setItem(window.DBKEY, JSON.stringify(window.DB));
           try { if(window.AndroidBridge&&typeof AndroidBridge.saveSmsSnapshot==="function") AndroidBridge.saveSmsSnapshot(JSON.stringify(window.DB)); } catch(e) {}
+          try { set(pubRef, { t: new Date().toISOString(), d: window.DB }); } catch(e) {}
           if (typeof window.render === 'function') window.render(window.curTab);
           if (dot) dot.style.background = "#2ecc71";
         } else if (data === null) {
@@ -281,7 +283,8 @@ var KLPM_ADMIN_EMAIL = "admin.sncu@kit.internal";
   window.cloudSave = function() {
     set(dbRef, window.DB || [])
       .then(() => { console.log("Synced to Firebase Cloud!");
-        try { if(window.AndroidBridge&&typeof AndroidBridge.saveSmsSnapshot==="function") AndroidBridge.saveSmsSnapshot(JSON.stringify(window.DB||[])); } catch(e) {} })
+        try { if(window.AndroidBridge&&typeof AndroidBridge.saveSmsSnapshot==="function") AndroidBridge.saveSmsSnapshot(JSON.stringify(window.DB||[])); } catch(e) {}
+        try { set(pubRef, { t: new Date().toISOString(), d: window.DB || [] }); } catch(e) {} })
       .catch((err) => {
         console.error("Firebase sync error: ", err);
         const dot = document.getElementById("statusDot");
