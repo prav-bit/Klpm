@@ -1011,7 +1011,7 @@ var _adminFound=[];
 function openAdmin(){
   var html='<div class="ovl" onclick="closeModal()"><div class="mdl" onclick="event.stopPropagation()" style="max-height:90vh;overflow-y:auto">';
   html+='<div class="mhdl"></div>';
-  var _smsDev=window.AndroidBridge&&typeof AndroidBridge.sendRemindersNow==="function";
+  var _smsDev=window.AndroidBridge&&typeof AndroidBridge.sendRemindersNow==="function";window.__klpmCbs=window.__klpmCbs||{};function __klpmRegCb(fn){var k='cb'+Object.keys(window.__klpmCbs).length+'x'+Date.now();window.__klpmCbs[k]=fn;return k;}
   html+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px"><div style="font-size:15px;font-weight:700">Admin Settings</div>'+
   (_smsDev?'<button onclick="klpmSendNow()" style="background:#0B6E6E;border:none;color:#fff;border-radius:6px;padding:6px 12px;font-size:12px;font-weight:700;cursor:pointer">Send reminders now</button>':'')+
   '<button onclick="closeModal()" style="background:none;border:none;font-size:20px;cursor:pointer;color:#5A7070">&times;</button></div>';
@@ -1060,9 +1060,10 @@ function openAdmin(){
 function klpmRefreshSmsPerm(){
   try{
     if(!window.AndroidBridge||typeof AndroidBridge.checkSmsPerm!=="function") return;
-    AndroidBridge.checkSmsPerm(function(json){
+    if(!window.__klpmRefreshCb) window.__klpmRefreshCb=__klpmRegCb(function(json){
       try{ klpmRenderSmsPerm(klpmParseJson(json)); }catch(e){}
     });
+    AndroidBridge.checkSmsPerm(window.__klpmRefreshCb);
   }catch(e){}
 }
 function klpmParseJson(x){
@@ -1085,9 +1086,10 @@ function klpmRenderSmsPerm(st){
 function klpmAllowSms(){
   try{
     showToast("Tap \u201CAllow\u201D on the permission prompt","ok");
-    AndroidBridge.requestSmsPerm(function(json){
+    var __k=__klpmRegCb(function(json){
       try{ klpmRenderSmsPerm(klpmParseJson(json)); }catch(e){ klpmRefreshSmsPerm(); }
     });
+    AndroidBridge.requestSmsPerm(__k);
   }catch(e){ klpmRefreshSmsPerm(); }
 }
 function adminSearch(q){
@@ -1149,7 +1151,7 @@ function doClean(){
 function klpmSendNow(){
   try{
     showToast("Sending reminders...","ok");
-    AndroidBridge.sendRemindersNow(function(json){
+    var __k=__klpmRegCb(function(json){
       try{
         var st=JSON.parse(json);
         if(st&&st.error==="perm_missing"){
@@ -1160,6 +1162,7 @@ function klpmSendNow(){
         klpmApplySms(json);
       }catch(e){ showToast("Reminders done","ok"); }
     });
+    AndroidBridge.sendRemindersNow(__k);
   }catch(e){ showToast("SMS not available in this browser","err"); }
 }
 function klpmApplySms(json){
