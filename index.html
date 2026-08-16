@@ -708,9 +708,14 @@ function pcHTML(n){
   });
   if(_smsEvents.length){
     var _sentCount=_smsEvents.filter(function(ev){var _s=typeof ev==="string"?ev:ev.state;return _s==="s"||_s==="sent";}).length;
-    var _failedCount=_smsEvents.length-_sentCount;
-    var _ok=_sentCount>0;
-    var _count=_ok?_sentCount:_failedCount;
+    // The colour reports the latest delivery attempt. The number always
+    // reports successful automatic reminders for this active kit cycle:
+    // after two sends then one failure, show red ✗ 2; after the next send,
+    // show green ✓ 3.
+    var _latest=_smsEvents[_smsEvents.length-1];
+    var _latestState=typeof _latest==="string"?_latest:_latest.state;
+    var _ok=_latestState==="s"||_latestState==="sent";
+    var _count=_sentCount;
     bdg+='<span aria-label="Automatic SMS result count" style="margin-left:6px;font-size:15px;font-weight:700;white-space:nowrap;color:'+(_ok?"#1A7A4A":"#C0392B")+'">'+(_ok?"\u2713":"\u2717")+(_count>1?" "+_count:"")+'</span>';
   }
   return '<div class="pc" onclick="openPt(\''+n.id+'\')">'+
