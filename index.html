@@ -1016,15 +1016,14 @@ function openAdmin(){
   (_smsDev?'<button onclick="klpmSendNow()" style="background:#0B6E6E;border:none;color:#fff;border-radius:6px;padding:6px 12px;font-size:12px;font-weight:700;cursor:pointer">Send reminders now</button>':'')+
   '<button onclick="closeModal()" style="background:none;border:none;font-size:20px;cursor:pointer;color:#5A7070">&times;</button></div>';
   html+='<div style="background:#E0F4F4;border-radius:9px;padding:12px;text-align:center;margin-bottom:12px"><div style="font-size:24px;font-weight:700;color:#0B6E6E">'+DB.length+'</div><div style="font-size:11px;color:#5A7070">Babies registered</div></div>';
-  if(window.AndroidBridge&&typeof AndroidBridge.checkSmsPerm==="function"){
-    html+='<div id="klpmSmsPermBox" style="display:none;justify-content:space-between;align-items:center;background:#F1F9F9;border:1.5px solid #C8E6E6;border-radius:9px;padding:10px 12px;margin-bottom:12px"></div>';
-  }
+  html+='<div id="klpmSmsPermBox" style="display:none;justify-content:space-between;align-items:center;background:#F1F9F9;border:1.5px solid #C8E6E6;border-radius:9px;padding:10px 12px;margin-bottom:12px"></div>';
   var _isKlpmAdmin = !!(window._klpmUser && window._klpmUser.toLowerCase() === KLPM_ADMIN_EMAIL.toLowerCase());
   html+='<div style="font-size:11px;color:#5A7070;margin-bottom:10px">Signed in as: '+(window._klpmUser||"?")+'</div>';
-  if(window.AndroidBridge&&typeof AndroidBridge.getAutoRunNote==="function"){
-    html+='<div id="klpmAutoRunNote" style="display:none;background:#EDF7F3;border:1.5px solid #7CB9A8;border-radius:9px;padding:10px;margin-bottom:12px;font-size:11px;color:#0B6E6E"></div>';
-    try{ AndroidBridge.getAutoRunNote(function(n){ try{ var el=document.getElementById("klpmAutoRunNote"); if(el&&n&&n!=="no_auto_run_yet"){ el.textContent=n; el.style.display="block"; } }catch(e){} }); }catch(e){}
-  }
+  html+='<div id="klpmAutoRunNote" style="display:none;background:#EDF7F3;border:1.5px solid #7CB9A8;border-radius:9px;padding:10px;margin-bottom:12px;font-size:11px;color:#0B6E6E"></div>';
+  try{ (function(){
+    var _f=function(){ if(window.AndroidBridge&&typeof AndroidBridge.getAutoRunNote==="function"){ try{ AndroidBridge.getAutoRunNote(function(n){ try{ var el=document.getElementById("klpmAutoRunNote"); if(el&&n&&n!=="no_auto_run_yet"){ el.textContent=n; el.style.display="block"; } }catch(e){} }); }catch(e){} return true; } return false; };
+    if(!_f()){ var _i=0; var _t=setInterval(function(){ _i++; if(_f()||_i>=20){ clearInterval(_t); } },1000); }
+  })(); }catch(e){}
   if(_isKlpmAdmin){
   html+='<div style="background:#FEF9E7;border:1.5px solid #D4A017;border-radius:9px;padding:12px;margin-bottom:12px">'+
     '<div style="font-size:13px;font-weight:700;color:#D4A017;margin-bottom:8px">Delete Specific Entry</div>'+
@@ -1042,18 +1041,32 @@ function openAdmin(){
   html+='<button class="btn btn-out" onclick="closeModal()">Close</button>';
   html+='</div></div>';
   var m=document.getElementById("modal");m.innerHTML=html;m.classList.remove("hide");
-  // v28: refresh SMS permission status whenever the panel opens
-  if(window.AndroidBridge&&typeof AndroidBridge.checkSmsPerm==="function"){
-    try{ klpmRefreshSmsPerm(); }catch(e){}
-  }
+  // v29: refresh SMS permission status whenever the panel opens
+  try{ klpmRefreshSmsPerm(); }catch(e){}
+  // late-bridge retry: if the Android bridge isn't ready yet, try again every 1s for 20s
+  try{ if(!window.AndroidBridge||typeof AndroidBridge.checkSmsPerm!=="function"){
+    var _klpmR=0; var _klpmT=setInterval(function(){
+      _klpmR++;
+      if(window.AndroidBridge&&typeof AndroidBridge.checkSmsPerm==="function"){
+        clearInterval(_klpmT); klpmRefreshSmsPerm();
+      } else if(_klpmR>=20){ clearInterval(_klpmT);
+        var _b=document.getElementById("klpmSmsPermBox");
+        if(_b){ _b.style.display="flex"; _b.style.background="#F1F9F9";
+          _b.innerHTML='<div style="font-size:12px;color:#5A7070">SMS reminders are available in the Android app.</div>'; }
+      }
+    },1000);
+  } }catch(e){}
 }
 function klpmRefreshSmsPerm(){
   try{
     if(!window.AndroidBridge||typeof AndroidBridge.checkSmsPerm!=="function") return;
     AndroidBridge.checkSmsPerm(function(json){
-      try{ klpmRenderSmsPerm(JSON.parse(json)); }catch(e){}
+      try{ klpmRenderSmsPerm(klpmParseJson(json)); }catch(e){}
     });
   }catch(e){}
+}
+function klpmParseJson(x){
+  try{ if(x&&typeof x==="object") return x; return JSON.parse(String(x)); }catch(e){ return {}; }
 }
 function klpmRenderSmsPerm(st){
   try{
@@ -1073,7 +1086,7 @@ function klpmAllowSms(){
   try{
     showToast("Tap \u201CAllow\u201D on the permission prompt","ok");
     AndroidBridge.requestSmsPerm(function(json){
-      try{ klpmRenderSmsPerm(JSON.parse(json)); }catch(e){ klpmRefreshSmsPerm(); }
+      try{ klpmRenderSmsPerm(klpmParseJson(json)); }catch(e){ klpmRefreshSmsPerm(); }
     });
   }catch(e){ klpmRefreshSmsPerm(); }
 }
