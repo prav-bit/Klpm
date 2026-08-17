@@ -912,6 +912,38 @@ function showRptList(type){
   var m=document.getElementById("modal");m.innerHTML=html;m.classList.remove("hide");
 }
 function closeModal(){document.getElementById("modal").innerHTML="";document.getElementById("modal").classList.add("hide");}
+function klpmDryRun(){
+  var _o=document.getElementById("klpmDryRunOut");
+  var _b=document.getElementById("klpmDryRunBtn");
+  if(!_o){ return; }
+  _o.style.display="block"; _b.disabled=true; _o.innerHTML='<div style="font-size:11px;color:#5A7070">Computing planned 7:00 AM run…</div>';
+  if(!window.AndroidBridge||typeof AndroidBridge.getSmsDryRunReport!=="function"){ _o.textContent="The dry-run preview is available only inside the Android app."; _b.disabled=false; return; }
+  window.__klpmCbs=window.__klpmCbs||{};function __klpmRegCb(fn){var k='cb'+Object.keys(window.__klpmCbs).length+'x'+Date.now();window.__klpmCbs[k]=fn;return k;}
+  var _cb=__klpmRegCb(function(raw){
+    var rpt=null;
+    try{ rpt=JSON.parse(raw); }catch(e){ rpt=null; }
+    var out="";
+    if(!rpt){ out='<div style="font-size:11px;color:#C0392B">Dry-run report could not be read.</div>'; }
+    else if(rpt.mode!=="TEST_NO_SMS"){ out='<div style="font-size:11px;color:#C0392B">Unexpected mode — no SMS were sent: '+String(rpt.mode)+'</div>'; }
+    else{
+      out+='<div style="font-size:11px;color:#0B6E6E;margin-bottom:8px">Run day: '+String(rpt.runDay||"?")+" — "+rpt.eligibleTotal+" child(ren) would receive a message. SMS permission is NOT required for this preview."+'</div>';
+      if(!rpt.planned||!rpt.planned.length){ out+='<div style="font-size:11px;color:#5A7070">No children eligible today at 7:00 AM IST.</div>'; }
+      rpt.planned.forEach(function(p){
+        var tag=p.kind==="due"?'<span style="font-size:10px;font-weight:700;color:#B8860B;border:1px solid #B8860B;border-radius:999px;padding:1px 6px">DUE '+p.dueDate+'</span>':'<span style="font-size:10px;font-weight:700;color:#C0392B;border:1px solid #C0392B;border-radius:999px;padding:1px 6px">OVERDUE day '+p.overdueDay+' · due '+p.dueDate+'</span>';
+        out+='<div style="background:#fff;border:1px solid #C8E6E6;border-radius:9px;padding:10px;margin-bottom:8px">'+
+          '<div style="font-size:13px;font-weight:700">'+(p.name||p.id)+' '+tag+'</div>'+
+          '<div style="font-size:10px;color:#5A7070;margin-bottom:6px">DEIC '+(p.deic||"?")+" · "+(p.phone||"?")+' · kit '+p.kit+'</div>'+
+          '<div style="font-size:12px;color:#1a1a1a;margin-bottom:6px">'+p.message+'</div>'+
+          '<div style="font-size:10px;color:#5A7070">Characters: '+p.charUnits+' / 70'+" · planned tick: "+p.tick+'</div></div>';
+      });
+    }
+    if(_o){ _o.innerHTML=out; _o.style.display="block"; }
+    try{ _b.disabled=false; }catch(e){}
+  });
+  try{ AndroidBridge.getSmsDryRunReport(_cb); }catch(e){
+    _o.innerHTML='<div style="font-size:11px;color:#C0392B">Dry-run unavailable: '+String(e)+'</div>';
+  }
+}
 // ── IN-APP REPORT PREVIEW (full-screen overlay, closes on tap anywhere or Close button) ───
 var _klpmPrevEl=null, _klpmPrevIframe=null;
 function klpmShowRptPreview(title, htmlContent){
@@ -1057,6 +1089,11 @@ function openAdmin(){
     '<div style="font-size:13px;font-weight:700;color:#C0392B;margin-bottom:6px">Delete All Data</div>'+
     '<div style="font-size:12px;color:#5A7070;margin-bottom:10px">Permanently deletes all records. Cannot be undone.</div>'+
     '<button class="btn btn-red" onclick="adminStep2()">Delete All Data</button></div>';
+  html+='<div style="background:#F0FAF0;border:1.5px solid #7CB9A8;border-radius:9px;padding:12px;margin-bottom:12px">'+
+    '<div style="font-size:13px;font-weight:700;color:#0B6E6E;margin-bottom:4px">Dry-Run: Preview 7:00 AM Plan <span style="font-size:10px;font-weight:700;background:#0B6E6E;color:#fff;border-radius:999px;padding:1px 7px">TEST — NO SMS SENT</span></div>'+
+    '<div style="font-size:11px;color:#5A7070;margin-bottom:10px">Shows which children would be messaged at 7:00 AM IST, the Tamil text (capped at 70 characters), and the tick that would appear. Nothing is sent.</div>'+
+    '<button class="btn btn-out" id="klpmDryRunBtn" onclick="klpmDryRun()">Preview 7 AM run</button>'+
+    '<div id="klpmDryRunOut" style="display:none;margin-top:10px"></div></div>';
   }else{
   html+='<div style="background:#E8F8F8;border:1.5px solid #0B6E6E;border-radius:9px;padding:12px;margin-bottom:12px;text-align:center">'+
     '<div style="font-size:12px;font-weight:700;color:#0B6E6E;margin-bottom:4px">Staff View Only</div>'+
