@@ -1071,7 +1071,7 @@ function openAdmin(){
   window.__klpmCbs=window.__klpmCbs||{};function __klpmRegCb(fn){var k='cb'+Object.keys(window.__klpmCbs).length+'x'+Date.now();window.__klpmCbs[k]=fn;return k;}
   html+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px"><div style="font-size:15px;font-weight:700">Admin Settings</div>'+
   '<button onclick="closeModal()" style="background:none;border:none;font-size:20px;cursor:pointer;color:#5A7070">&times;</button></div>';
-  html+='<div style="background:#E0F4F4;border-radius:9px;padding:12px;text-align:center;margin-bottom:12px"><div style="font-size:24px;font-weight:700;color:#0B6E6E">'+DB.length+'</div><div style="font-size:11px;color:#5A7070">Babies registered</div></div>';
+  html+='<div style="background:#E0F4F4;border-radius:9px;padding:12px;text-align:center;margin-bottom:12px"><div id="klpmAdminCount" style="font-size:24px;font-weight:700;color:#0B6E6E">'+DB.length+'</div><div style="font-size:11px;color:#5A7070">Babies registered</div></div>';
   html+='<div id="klpmSmsPermBox" style="display:none;justify-content:space-between;align-items:center;background:#F1F9F9;border:1.5px solid #C8E6E6;border-radius:9px;padding:10px 12px;margin-bottom:12px"></div>';
   var _isKlpmAdmin = !!(window._klpmUser && window._klpmUser.toLowerCase() === KLPM_ADMIN_EMAIL.toLowerCase());
   html+='<div style="font-size:11px;color:#5A7070;margin-bottom:10px">Signed in as: '+(window._klpmUser||"?")+'</div>';
@@ -1153,6 +1153,39 @@ function klpmAllowSms(){
     AndroidBridge.requestSmsPerm(__k);
   }catch(e){ klpmRefreshSmsPerm(); }
 }
+var _adminDelPending=null;
+// v62: custom admin password dialog — replaces the browser prompt() which Android frames as "github.io says:".
+function _showPwdDialog(msg,onDone){
+  try{
+    var el=document.createElement("div");
+    el.id="klpmPwdDlg";
+    el.style.cssText="position:fixed;top:0;left:0;right:0;bottom:0;z-index:10000;background:rgba(11,34,34,0.55);display:flex;align-items:center;justify-content:center;padding:24px";
+    el.innerHTML='<div style="background:#fff;border-radius:14px;padding:22px;width:100%;max-width:320px">'+
+      '<div style="font-size:14px;font-weight:700;color:#0B6E6E;margin-bottom:12px">'+escH(msg)+'</div>'+
+      '<input id="klpmPwdIn" type="password" placeholder="Admin password" maxlength="32" style="width:100%;padding:10px 12px;border:1.5px solid #C8E6E6;border-radius:8px;font-size:14px;box-sizing:border-box;outline:none"/>'+
+      '<div id="klpmPwdErr" style="color:#C0392B;font-size:11px;margin-top:6px;text-align:center"></div>'+
+      '<div style="display:flex;gap:8px;margin-top:14px">'+
+      '<button id="klpmPwdCancel" style="flex:1;padding:10px;border:1.5px solid #C8E6E6;background:#fff;color:#5A7070;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer">Cancel</button>'+
+      '<button id="klpmPwdOk" style="flex:1;padding:10px;border:none;background:#0B6E6E;color:#fff;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer">OK</button></div></div>';
+    document.body.appendChild(el);
+    var inp=document.getElementById("klpmPwdIn");inp.focus();
+    var fin=null;
+    function done(ok){if(fin)return;fin=true;var e=document.getElementById("klpmPwdDlg");if(e&&e.parentNode)e.parentNode.removeChild(e);onDone(!!ok);}
+    document.getElementById("klpmPwdOk").onclick=function(){
+      var p=inp.value;
+      if(p!==ADMIN_PWD){document.getElementById("klpmPwdErr").textContent="Wrong password!";inp.value="";inp.focus();return;}
+      done(true);
+    };
+    document.getElementById("klpmPwdCancel").onclick=function(){done(false);};
+    el.addEventListener("click",function(ev){if(ev.target===el)done(false);});
+    inp.addEventListener("keydown",function(ev){if(ev.key==="Enter")document.getElementById("klpmPwdOk").click();});
+  }catch(e){ onDone(!!window.prompt(msg)); }
+}
+// v62: refresh the Admin Settings registered-babies counter instantly after a deletion
+function _refreshAdminCount(){
+  var cnt=document.getElementById("klpmAdminCount");
+  if(cnt){cnt.textContent=DB.length;}
+}
 function adminSearch(q){
   var res=document.getElementById("adminSearchRes");
   if(!q||q.length<2){res.innerHTML="";_adminFound=[];return;}
@@ -1171,11 +1204,15 @@ function adminDelEntry(idx){
   if(!window._klpmUser||window._klpmUser.toLowerCase()!==KLPM_ADMIN_EMAIL.toLowerCase()){alert("Only the admin account can delete entries.");return;}
   var n=_adminFound[idx];if(!n)return;
   if(!window.confirm("Delete entry for "+n.name+"?\nThis cannot be undone."))return;
-  var pwd=window.prompt("Enter admin password:");
-  if(pwd!==ADMIN_PWD){alert("Wrong password!");return;}
-  DB=DB.filter(function(x){return x.id!==n.id;});
-  dbSave();updBadge();updIbar();showToast("Entry for "+n.name+" deleted.");
-  var q=document.getElementById("adminSrch");if(q)adminSearch(q.value);
+  _adminDelPending=n;
+  _showPwdDialog("Enter admin password to delete",function(ok){
+    if(!ok){_adminDelPending=null;return;}
+    _adminDelPending=null;
+    DB=DB.filter(function(x){return x.id!==n.id;});
+    dbSave();updBadge();updIbar();showToast("Entry for "+n.name+" deleted.");
+    _refreshAdminCount();
+    var q=document.getElementById("adminSrch");if(q)adminSearch(q.value);
+  });
 }
 function adminStep2(){
   var html='<div class="ovl" onclick="closeModal()"><div class="mdl" onclick="event.stopPropagation()"><div class="mhdl"></div>'+
