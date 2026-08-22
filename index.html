@@ -707,16 +707,17 @@ function pcHTML(n){
     return true;
   });
   if(_smsEvents.length){
-    var _sentCount=_smsEvents.filter(function(ev){var _s=typeof ev==="string"?ev:ev.state;return _s==="s"||_s==="sent";}).length;
-    // The colour reports the latest delivery attempt. The number always
-    // reports successful automatic reminders for this active kit cycle:
-    // after two sends then one failure, show red ✗ 2; after the next send,
-    // show green ✓ 3.
+    // v64 is intentionally honest about the delivery boundary. Amber means Android accepted
+    // the message for the SMS network but no carrier delivery report has arrived; green is
+    // reserved for a carrier-reported delivery confirmation. Red means sender-side failure.
     var _latest=_smsEvents[_smsEvents.length-1];
     var _latestState=typeof _latest==="string"?_latest:_latest.state;
-    var _ok=_latestState==="s"||_latestState==="sent";
-    var _count=_sentCount;
-    bdg+='<span aria-label="Automatic SMS result count" style="margin-left:6px;font-size:15px;font-weight:700;white-space:nowrap;color:'+(_ok?"#1A7A4A":"#C0392B")+'">'+(_ok?"\u2713":"\u2717")+(_count>1?" "+_count:"")+'</span>';
+    var _deliveredCount=_smsEvents.filter(function(ev){var _s=typeof ev==="string"?ev:ev.state;return _s==="d"||_s==="delivered";}).length;
+    var _tick="\u2197",_colour="#B8860B",_label="SMS sent to network — delivery unconfirmed";
+    if(_latestState==="d"||_latestState==="delivered"){_tick="\u2713";_colour="#1A7A4A";_label="Carrier delivery confirmed";}
+    else if(_latestState==="f"||_latestState==="failed"){_tick="\u2717";_colour="#C0392B";_label="SMS send failed";}
+    else if(_latestState==="u"){_tick="!";_colour="#B8860B";_label="Delivery report unconfirmed";}
+    bdg+='<span aria-label="'+_label+'" title="'+_label+'" style="margin-left:6px;font-size:14px;font-weight:700;white-space:nowrap;color:'+_colour+'">'+_tick+(_deliveredCount>1?" "+_deliveredCount:"")+'</span>';
   }
   return '<div class="pc" onclick="openPt(\''+n.id+'\')">'+
     '<div class="prow"><div>'+
