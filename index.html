@@ -713,11 +713,13 @@ function pcHTML(n){
     var _latest=_smsEvents[_smsEvents.length-1];
     var _latestState=typeof _latest==="string"?_latest:_latest.state;
     var _deliveredCount=_smsEvents.filter(function(ev){var _s=typeof ev==="string"?ev:ev.state;return _s==="d"||_s==="delivered";}).length;
-    var _tick="\u2197",_colour="#B8860B",_label="SMS sent to network — delivery unconfirmed";
+    var _tick="SENT \u2197",_colour="#9A6700",_label="SMS sent to network — delivery unconfirmed";
+    var _tickStyle="margin-left:6px;display:inline-flex;align-items:center;gap:3px;padding:3px 8px;border:1px solid #D7A928;border-radius:12px;background:#FFF4D6;font-size:11px;font-weight:800;letter-spacing:.2px;line-height:1;white-space:nowrap;color:"+_colour;
     if(_latestState==="d"||_latestState==="delivered"){_tick="\u2713";_colour="#1A7A4A";_label="Carrier delivery confirmed";}
     else if(_latestState==="f"||_latestState==="failed"){_tick="\u2717";_colour="#C0392B";_label="SMS send failed";}
     else if(_latestState==="u"){_tick="!";_colour="#B8860B";_label="Delivery report unconfirmed";}
-    bdg+='<span aria-label="'+_label+'" title="'+_label+'" style="margin-left:6px;font-size:14px;font-weight:700;white-space:nowrap;color:'+_colour+'">'+_tick+(_deliveredCount>1?" "+_deliveredCount:"")+'</span>';
+    if(_latestState==="d"||_latestState==="delivered"||_latestState==="f"||_latestState==="failed"||_latestState==="u")_tickStyle="margin-left:6px;font-size:14px;font-weight:700;white-space:nowrap;color:"+_colour;
+    bdg+='<span aria-label="'+_label+'" title="'+_label+'" style="'+_tickStyle+'">'+_tick+(_deliveredCount>1?" "+_deliveredCount:"")+'</span>';
   }
   return '<div class="pc" onclick="openPt(\''+n.id+'\')">'+
     '<div class="prow"><div>'+
